@@ -558,10 +558,12 @@ echo("Sim called ["@%Client@"]: %choco: "@%Choco@" | %opt = "@%opt@" | %lvltype 
 		$ChocoboWorth[%Client, %Choco] = 0;
 }
 
-////////////////////TEMP
-function Cap(%n, %lb, %ub) { if(%n < %lb) %n = %lb; if(%n > %ub) %n = %ub; return %n; }
-function round(%n) { if(%n < 0) { %t = -1; %n = -%n; } else if(%n >= 0) %t = 1; %f = floor(%n); %a = %n - %f; if(%a < 0.5) %b = 0; else if(%a >= 0.5) %b = 1; return (%f + %b) * %t; }
-////////////////////
+// (Removed leftover "TEMP" Cap()/round() redefinitions. They loaded AFTER
+// rpgfunk.cs and overrode its versions - and this Cap() dropped rpgfunk's
+// "inf" (uncapped) handling, so Cap(x,lb,"inf") returned the string "inf".
+// That silently broke damage (playerdamage Cap(v-25,0,"inf")), the EXP table
+// (rpgstats pow(Cap(i-20,0,"inf"),5)) and blacksmith pricing. rpgfunk.cs owns
+// the canonical Cap()/round().)
 
 function Chocobo::FoodType(%Client, %type, %lvltype, %Choco, %coins, %name) {
 

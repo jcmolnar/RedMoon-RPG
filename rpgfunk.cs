@@ -1091,7 +1091,7 @@ function ClearVariables(%Client) {
 	deleteVariables("ClientData"@%Client@"*");
 	deleteVariables("Client::tmp"@%Client@"*");
 
-	deleteVariables("*GotHitBy"@%sClient);
+	deleteVariables("*GotHitBy"@%Client);
 
 	deleteVariables("BonusState"@%Client@"*");
 	deleteVariables("BonusStateCnt"@%Client@"*");

@@ -115,6 +115,17 @@ $PiercingDamageType	= 2;
 $ProjectileDamageType = 3;
 $BludgeoningDamageType	= 4;
 
+// Aliases for $AttackBonus indexing. rpgfunk (new-player init + ClearVariables) and Ai.cs
+// (bot skill setup) referenced $SkillSlashing/$SkillBludgeoning/$SkillPiercing/$SkillArchery,
+// which were never defined -> they resolved to "" and wrote attack bonuses to a bogus empty
+// key. That meant bots never got their attack bonus, and a new player on a reused client slot
+// could inherit the previous player's bonus (the real key was never cleared/initialized). The
+// damage read (playerdamage) and save/load use the $*DamageType keys, so alias to those.
+$SkillSlashing    = $SlashingDamageType;
+$SkillPiercing    = $PiercingDamageType;
+$SkillArchery     = $ProjectileDamageType;
+$SkillBludgeoning = $BludgeoningDamageType;
+
 $MaxAttackBonusSkill = 10;
 
 //$SkillDifficulty[$SlashingDamageType] = 1.0;

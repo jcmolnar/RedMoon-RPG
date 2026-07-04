@@ -506,7 +506,7 @@ function BotChatStuff(%Client, %closestId, %message, %cropped, %initTalk) {
 			{
 			//	AI::sayLater(%Client, %closestId, "Click Use on an item and I will tell you how much it\nwill cost to smith. Click Use on this item again and I\nwill get to work.", "NULL");
 				AI::sayLater(%Client, %closestId, "Lets do this.", "NULL");
-				Client::sendMessage(%Client, "Click Sell on an item and I will keep a list on what to smith. Click Buy to take back an item.");
+				Client::sendMessage(%Client, 0, "Click Sell on an item and I will keep a list on what to smith. Click Buy to take back an item.");
 				$ClientData[%Client, tmpSmith] = "";
 				$ClientData[%Client, SmithStage] = "stuff";
 				$ClientData[%Client, SmithMode] = 1;
@@ -643,7 +643,7 @@ function getRandomName(%Client, %ii) {
 	if(%w[%r] != %name)
 		return %w[%r];
 	else
-		getRandomName(%Client, %ii++);
+		return getRandomName(%Client, %ii+1);
 
 }
 function Fun::getName(%Client) {

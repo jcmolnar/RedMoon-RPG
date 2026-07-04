@@ -214,7 +214,7 @@ function Meteor()
 	%density = %coordinate - %coordinate2;
 	%density=%density/850;
 	%density=pow(%density,2)-1;
-	for(%i = 0; %i < 180; %i= %i++)
+	for(%i = 0; %i < 180; %i++)
 	{
 		%time = %i * $MeteorDuration/180;
 		%number=$sin[%i];
@@ -269,7 +269,7 @@ function Lightning()
 	%density = %coordinate - %coordinate2;
 	%density=%density/850;
 	%density=pow(%density,2)-1;
-	for(%i = 0; %i < 180; %i= %i++)
+	for(%i = 0; %i < 180; %i++)
 	{
 		%time = %i * $LightningDuration/180;
 		%number=$sin[%i];
@@ -323,7 +323,7 @@ function SolarFlare()
 		schedule ("Client::sendMessage(" @ %clientId @ ",0,\"~wC_BuySell.wav\");",0.5);
 		schedule ("Client::sendMessage(" @ %clientId @ ",0,\"~wC_BuySell.wav\");",1.0);
 	}
-	for(%i = 0; %i < 60; %i= %i++)
+	for(%i = 0; %i < 60; %i++)
 	{
 		%time = %i * $SolarFlareDuration/60;
 		%test = schedule("SolarFlareBurst(" @ %camera @ ");", %time);

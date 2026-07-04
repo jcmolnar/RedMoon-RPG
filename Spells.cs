@@ -1228,7 +1228,7 @@ function IntSpellSkills() {
 //----------------------------------------------------------------------------------------------------------------
 
 
-function SpellNum1(%Client, %castObj, %castPos) {
+function SpellNum1(%Client, %castObj, %castPos, %w2) {
 
 	%zoneId = GetNearestZone(%Client, %w2, 3);
 
@@ -1271,7 +1271,7 @@ function SpellNum1(%Client, %castObj, %castPos) {
 	}
 }
 
-function SpellNum2(%Client, %castObj, %castPos) {
+function SpellNum2(%Client, %castObj, %castPos, %w2) {
 
 	//Transport zone spell
 	%zoneId = GetZoneByKeywords(%Client, %w2, 3);
@@ -1297,7 +1297,7 @@ function SpellNum2(%Client, %castObj, %castPos) {
 		return "returnFlag 0";
 	}
 }
-function SpellNum3(%Client, %castObj, %castPos) {
+function SpellNum3(%Client, %castObj, %castPos, %w2) {
 	//Advanced Transport zone spell
 	%zoneId = GetZoneByKeywords(%Client, %w2, 3);
 
@@ -2400,6 +2400,7 @@ function SpellNum60(%Client, %castObj, %castPos) {
 	}
 }
 function SpellNum61(%Client, %castObj, %castPos) {
+	%index = 61;
 	%player = Client::getOwnedObject(%Client);
 	if(%castPos != "")
 	{
@@ -2415,17 +2416,16 @@ function SpellNum61(%Client, %castObj, %castPos) {
 
 			%newPos = %xPos@" "@%yPos@" "@%zPos;
 
-			schedule("CreateAndDetBomb("@%clientId@", \"Supercheebomb1\", \""@%newPos@"\", False, "@%index@");", %i / 7, %player);
+			schedule("CreateAndDetBomb("@%Client@", \"Supercheebomb1\", \""@%newPos@"\", False, "@%index@");", %i / 7, %player);
 		}
-		CreateAndDetBomb(%clientId, "Supercheebomb1", %castPos, True, %index);
+		CreateAndDetBomb(%Client, "Supercheebomb1", %castPos, True, %index);
 
-		%overrideEndSound = True;
-		%returnFlag = True;
+		return "returnFlag 1 overrideEndSound 1";
 	}
 	else
 	{
-		Client::sendMessage(%clientId, $MsgBeige, "Could not find a target.");
-		%returnFlag = False;
+		Client::sendMessage(%Client, $MsgBeige, "Could not find a target.");
+		return "returnFlag 0";
 	}
 }
 function SpellNum62(%Client, %castObj, %castPos) { //mimic spell
@@ -2646,6 +2646,7 @@ function SpellNum67(%Client, %castObj, %castPos) {
 }
 
 function SpellNum68(%Client, %castObj, %castPos) {
+	%index = 68;
 	%player = Client::getOwnedObject(%Client);
 	if(%castPos != "")
 	{
@@ -2661,16 +2662,15 @@ function SpellNum68(%Client, %castObj, %castPos) {
 
 			%newPos = %xPos@" "@%yPos@" "@%zPos;
 
-			schedule("CreateAndDetBomb("@%clientId@", \"Supercheebomb1\", \""@%newPos@"\", False, "@%index@");", %i / 7, %player);
+			schedule("CreateAndDetBomb("@%Client@", \"Supercheebomb1\", \""@%newPos@"\", False, "@%index@");", %i / 7, %player);
 		}
-		CreateAndDetBomb(%clientId, "Supercheebomb1", %castPos, True, %index);
+		CreateAndDetBomb(%Client, "Supercheebomb1", %castPos, True, %index);
 
-		%overrideEndSound = True;
-		%returnFlag = True;
+		return "returnFlag 1 overrideEndSound 1";
 	}
 	else
 	{
-		Client::sendMessage(%clientId, $MsgBeige, "Could not find a target.");
-		%returnFlag = False;
+		Client::sendMessage(%Client, $MsgBeige, "Could not find a target.");
+		return "returnFlag 0";
 	}
 }

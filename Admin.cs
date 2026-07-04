@@ -494,7 +494,7 @@ function processMenuOptions(%Client, %option) {
 	}
 	else if(%opt == "addgroup")
 	{
-		if(countObjInCommaList($grouplist[%Client]) <= 30) {
+		if(countObjInCommaList($grouplist[Client::getName(%Client)]) <= 30) {
 			%name = Client::getName(%cl);
 			%name2 = Client::getName(%Client);
 			$grouplist[%name2] = $grouplist[%name2] @ %name @ $sepchar;

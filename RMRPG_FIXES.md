@@ -35,15 +35,39 @@ Status: `[x]` fixed · `[ ]` open · `[?]` needs investigation/decision
 
 ## OPEN / TO INVESTIGATE
 
-### Same-file duplicate function definitions (later def silently wins; earlier is dead)
-Need to check each pair: identical (harmless cleanup) vs divergent (real bug —
-the "dead" one may have been the intended behavior).
-- [ ] Client.cs — `Game::endFrame` defined 5x  (Client.cs is client-side)
-- [ ] Mine.cs — `Bomb4::onAdd` 4x, `Bomb612::onAdd` 2x
-- [ ] rpgfunk.cs — `IsInCommaList` 2x, `FixStuffString` 2x
-- [ ] Spells2.cs — `GetBestSpell` 2x
-- [ ] Chocobo.cs — `processMenuViewTradeInfo` 2x
-- [ ] AccessoryData.cs — `BotBoulder35Image::onFire` 2x
+### Same-file duplicate function definitions — INVESTIGATED
+### 3. Mine.cs — mislabeled bomb onAdd callbacks (REAL BUG, FIXED)
+- [x] Pattern in Mine.cs is `MineData BombN` then `function BombN::onAdd` (schedules
+  Mine::Detonate). Four callbacks were mislabeled by copy-paste, so those bombs had
+  NO onAdd and never detonated:
+    - Bomb107 (had `Bomb4::onAdd`), Bomb108 (`Bomb4::onAdd`), Bomb200 (`Bomb4::onAdd`),
+      bomb88888 (`bomb612::onAdd`). Renamed each to its own bomb. Now they detonate.
+- [keep] rpgfunk.cs `IsInCommaList` 2x, `FixStuffString` 2x — identical bodies (the
+  active copy just adds a dbecho). Harmless; optional cleanup, not a bug.
+- [keep] Chocobo.cs `processMenuViewTradeInfo` 2x — divergent (builder vs handler), BUT
+  the function has ZERO callers anywhere → dead/unfinished feature. Harmless.
+
+### 4. [FLAG] AccessoryData.cs — `Botboulder35Image::onFire` defined 2x, DIVERGENT
+- [?] 232 handles the "screech" weapon (fires screechbolt); 295 handles
+  "dodgethis"/"dodgethisc" (fires dodgethisbolt). Both named the same, so 295 wins and
+  SCREECH'S FIRE IS DEAD (screech won't launch its bolt, only melee). Both weapons use
+  shape "boulder". Fix is one of:
+    (a) MERGE — if screech & dodgethis truly share Botboulder35Image, combine both
+        branches into one onFire (checks UsingWeapon). OR
+    (b) RENAME — if it's a mislabel (like the bombs), 295 should be dodgethis's real
+        image callback.
+  NEEDS your call on how MakeItem maps shape "boulder" -> BotboulderNNImage (there's also
+  a Botboulder1Image::onFire @241, so images are per-weapon-ish). Left untouched.
+
+### 5. [FLAG] Spells2.cs — `GetBestSpell` defined 2x, DIVERGENT
+- [?] 703 (dead): semi-random spell picker that USES the `%semiRandomSpell` param.
+  802 (active): weighted "best value" selector that IGNORES `%semiRandomSpell`. The
+  active one is more sophisticated (likely the intended newer version), so the
+  semi-random code path is effectively gone. Confirm whether that's intended before
+  removing the dead 703 (removing it changes nothing at runtime).
+
+- [ ] Client.cs — `Game::endFrame` 5x — client-side file (not loaded by Server.cs);
+  low priority, check later.
 
 ### Cross-file overrides resolved by load order (verify winner is the intended/correct one)
 - [ ] `initSoundPoints` (rpgfunk vs nsound — nsound wins)

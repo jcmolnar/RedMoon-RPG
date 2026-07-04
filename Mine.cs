@@ -352,7 +352,7 @@ MineData Bomb107
 	triggerRadius = 0.5;
 	maxDamage = 1.0;
 };
-function Bomb4::onAdd(%this)
+function Bomb107::onAdd(%this)
 {
 	schedule("Mine::Detonate(" @ %this @ ");", 0.2, %this);
 }
@@ -375,7 +375,7 @@ MineData Bomb108
 	triggerRadius = 0.5;
 	maxDamage = 1.0;
 };
-function Bomb4::onAdd(%this)
+function Bomb108::onAdd(%this)
 {
 	schedule("Mine::Detonate(" @ %this @ ");", 0.2, %this);
 }
@@ -398,7 +398,7 @@ MineData Bomb200
 	triggerRadius = 0.5;
 	maxDamage = 1.0;
 };
-function Bomb4::onAdd(%this)
+function Bomb200::onAdd(%this)
 {
 	schedule("Mine::Detonate(" @ %this @ ");", 0.2, %this);
 }
@@ -778,7 +778,7 @@ MineData bomb88888
 	maxDamage = 1.5;
 };
 
-function bomb612::onAdd(%this)
+function bomb88888::onAdd(%this)
 {
 	schedule("Mine::Detonate(" @ %this @ ");",0.9,%this);
 }

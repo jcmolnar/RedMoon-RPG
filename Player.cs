@@ -81,7 +81,7 @@ function Player::jump(%this,%mom)
                 %this.newMountTime = getSimTime() + 3.0;
                 Player::setMountObject(%this, %vehicle, 0);
                 Player::setMountObject(%this, -1, 0);
-                Player::applyImpulse(%pl,%mom);
+                Player::applyImpulse(%this,%mom);
                 playSound (GameBase::getDataName(%this).dismountSound, GameBase::getPosition(%this));
    }
 }

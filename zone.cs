@@ -203,7 +203,7 @@ function UpdateZone(%object)
 					{
 						%dn = 10;
 
-						$drownCounter[%Client] = 1;
+						$drownCounter[%Client]++;
 
 						if((%dc = $drownCounter[%Client]) > %dn)
 						{

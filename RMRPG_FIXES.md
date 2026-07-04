@@ -272,3 +272,22 @@ Vehicle.cs, Turret.cs, Beacon.cs, StaticShape.cs, Station.cs, Moveable.cs, Senso
 InteriorLight.cs, townbots.cs, Intro.cs, Mission.cs, plugs.cs, version.cs, weight.cs,
 mana.cs, hp.cs, Stamina.cs, rpgstats.cs, Quests.cs, playerspawn.cs, carling1.cs (data-typo
 flag only: Pear/Platnium/Emeral in mob material drop tables), ChocoboArmor.cs (pure data).
+
+## POST-REVIEW FIXES (Jul 4, 2026 — Fable review pass over the sweep)
+### Chocobo jump-dismount hardened (Chocobo.cs)
+- [x] Armor::jump now handles BOTH dispatch cases: %this = ridden chocobo AND %this =
+  the mounted RIDER (players share className "Armor"; the rider resolves its chocobo
+  via Player::getMountObject). Either way the full Armor::dismount restore runs
+  (control object, weapon, driver flags) instead of stock Player::jump's raw unmount.
+- [x] Armor::dismount only Chocobo::Delete's the bird when the rider OWNS it
+  ($ChocoboSpawn[%cl] == %this). Riding someone else's chocobo no longer deletes the
+  rider's own saved bird; the ridden one is released ($isChocobo=true, clLastMount
+  cleared) so it can be mounted again. STILL NEEDS LIVE TEST (whether the engine
+  fires the jump callback at all in the ride configuration is unverified).
+### CompleteSmith batch fix (blackSmith.cs)
+- [x] The arrow/quarrel batch check compared getword(%tempsmith,1) — a COUNT in the
+  "item count item count" list — so it never matched, and %multiplier was clobbered
+  to 1: players paid cost×N for #smith N but always received 1 item, and ammo never
+  batched 99. Now: detection via findSubStr over the whole list; the paid %amt is
+  honored (give N items, or 99×N for ammo; materials consume count×N capped 1..99).
+  NOTE: inventory caps may still limit ammo batches past 99 — retune/verify on test.

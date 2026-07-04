@@ -1354,13 +1354,19 @@ echo("Can mount PASS %this "@%this);
 
 function Armor::jump(%this, %mom)
 {
-	// %this is the object being controlled when jump fires. If it's a chocobo currently
-	// being ridden, jumping hops the rider off. Normal players (and vehicles) share the
-	// "Armor" className, so fall through to the default Player::jump handling for them.
-	if($isChocobo[%this] == "isUsed")
-		Armor::dismount(%this, %mom);
-	else
-		Player::jump(%this, %mom);
+	// The jump callback may fire with %this = the controlled chocobo OR the mounted
+	// RIDER (players and chocobos share className "Armor"). Handle both; anyone else
+	// falls through to the stock vehicle-dismount handling in Player::jump.
+	if($isChocobo[%this] == "isUsed") {
+		Armor::dismount(%this, %mom);	//%this IS the ridden chocobo
+		return;
+	}
+	%mnt = Player::getMountObject(%this);
+	if($isChocobo[%mnt] == "isUsed") {
+		Armor::dismount(%mnt, %mom);	//%this is the RIDER; dismount via its chocobo
+		return;
+	}
+	Player::jump(%this, %mom);
 }
 
 function Armor::dismount(%this, %mom) {
@@ -1388,7 +1394,12 @@ function Armor::dismount(%this, %mom) {
       		}
 				%pl.driver = "";
 				%pl.vehicle = "";
-				Chocobo::Delete(%cl);	//remove the chocobo (same cleanup as the menu "Return")
+				if($ChocoboSpawn[%cl] == %this)
+					Chocobo::Delete(%cl);	//owner hopped off: stable the bird (menu "Return" cleanup)
+				else {
+					$isChocobo[%this] = true;	//not the rider's bird: leave it standing, free to mount again
+					%this.clLastMount = "";
+				}
 			}
 			else
 				Client::sendMessage(%cl,0,"Can not dismount - Obstacle in the way.~wError_Message.wav");

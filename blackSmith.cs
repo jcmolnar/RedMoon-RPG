@@ -926,11 +926,20 @@ function CompleteSmith(%Client, %id, %cost, %item, %tempsmith, %multiplier) {
 
 	//GiveThisStuff(%Client, %item, True, %multiplier);
 
-	if(getword(%tempsmith,1) == "Shape:_Arrow")		%multiplier = 99;
-	else if(getword(%tempsmith,1) == "Shape:_Quarrel")	%multiplier = 99;
-	else 									%multiplier = 1;
+	//%multiplier arrives as the player's requested batch count (#smith N; %cost was
+	//already charged as base cost x N). Arrows/Quarrels smith 99 per batch. The old
+	//code compared word 1 of %tempsmith (a COUNT in the "item count item count" list,
+	//so it never matched) and clobbered %multiplier with 1 - players paid for N but
+	//always received 1 item and arrows never batched.
+	%multiplier = floor(%multiplier);
+	if(%multiplier < 1)
+		%multiplier = 1;
+	if(String::findSubStr(%tempsmith, "Shape:_Arrow") != -1 || String::findSubStr(%tempsmith, "Shape:_Quarrel") != -1)
+		%give = 99 * %multiplier;	//NOTE: inventory caps may still limit what fits past 99
+	else
+		%give = %multiplier;
 
-	Item::giveItem(%Client, %item, %multiplier, 1);
+	Item::giveItem(%Client, %item, %give, 1);
 
 	for(%i = 0; (%w = GetWord(%tempsmith, %i)) != -1; %i+=2)
 	{

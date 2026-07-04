@@ -33,6 +33,26 @@ Status: `[x]` fixed · `[ ]` open · `[?]` needs investigation/decision
 
 ---
 
+## MOVED TO `unused/` (executed by nothing — server, client, or mission)
+- Comchat2_.cs — backup variant; Server.cs loads comchat/comchat2/comchat3, not this.
+- shopping.cs — duplicate of economy.cs's shop functions (economy is the loaded one);
+  also calls fetchData which RM doesn't define.
+- local.cs — orphan; execed by nothing. Its only body is `exec(redlist)`.
+- REDLIST.CS — only execed by the dead local.cs; sets $adminpassword + remotefetchdata stub.
+- Redplanet.cs — the "Red Planet" event (1930 lines); its `exec(redplanet)` in redlist is
+  COMMENTED OUT, so it never loads. Dead/disabled feature (also had undefined add_to_fight/
+  make_horse). Quarantined, not deleted — restore if you want to revive the event.
+- newstuff.cs — 3-line orphan stub (DoInstrumentBoxFunction), execed by nothing.
+- C.cs — scratch/notes file (mostly commented-out snippets).
+
+NOTE — deliberately KEPT (not "unused"): client-only files (gui, menu, chatmenu, options,
+playersetup, clientdefaults, loadshow, sound, ircclient, observer, commander, keys, sae,
+client) are executed by the CLIENT, not the server; and terrain/training/objectives/strings/
+editor/registration files are loaded by missions at load-time or by the engine. Those aren't
+server-execed but they ARE used, so moving them would break the client or mission loading.
+If you want the client-only set relocated too (e.g. this is a dedicated-server-only folder),
+say so and I'll move them as a separate batch.
+
 ## OPEN / TO INVESTIGATE
 
 ### Same-file duplicate function definitions — INVESTIGATED

@@ -17,8 +17,8 @@ function Server::onClientDisconnect(%clientId) {
 		if(%camp != -1)
 			DoCampSetup(%clientId, 5);
 
-		if($ClientData[%Client, "isMimic"])
-			 ChangeRace(%Client, "Human");
+		if($ClientData[%clientId, "isMimic"])
+			 ChangeRace(%clientId, "Human");
 
 		SaveCharacter(%clientId, %docamp);
 	}

@@ -63,7 +63,7 @@ function InitSpawnPoints() {
 function SpawnLoop(%this) {
 	//dbecho($dbechoMode, "SpawnLoop(" @ %this @ ")");
 
-%delay = floor(getRandom() * $BotSpawnInfo::Data[%this, maxdelay] - $BotSpawnInfo::Data[%this, mindelay]) + $BotSpawnInfo::Data[%this, mindelay];
+%delay = floor(getRandom() * ($BotSpawnInfo::Data[%this, maxdelay] - $BotSpawnInfo::Data[%this, mindelay])) + $BotSpawnInfo::Data[%this, mindelay];
 
 	%flag = "";
 	if($SelectiveZoneBotSpawning) {

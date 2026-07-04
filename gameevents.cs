@@ -100,13 +100,13 @@ function Game::initialMissionDrop(%clientId) {
 			schedule("Net::kick(" @ %clientId @ ", \"" @ %kickMsg @ "\");", 20);
 			centerprint(%clientId, %kickMsg @ "  You will automatically be kicked within 20 seconds.  If not, please disconnect manually.", 0);
 		}
-		RMSetObserver(%Client);
+		RMSetObserver(%clientId);
 	}
 	else if(%pkc == "True")
 	{
 		schedule("Net::kick(" @ %clientId @ ", \"" @ %kickMsg @ "\");", 20);
 		centerprint(%clientId, %kickMsg @ "  This character is banned for excessive PKing.", 0);
-		RMSetObserver(%Client);
+		RMSetObserver(%clientId);
 	}
 	else {
 		//==================================================
@@ -211,7 +211,7 @@ function RMSetObserver(%Client) {
 	%group = nameToId("MissionGroup\\ObserverDropPoints");
 	%observerMarker = Group::getObject(%group, 0);
 
-	Client::setControlObject(%Client, Client::getObserverCamera(%clientId));
+	Client::setControlObject(%Client, Client::getObserverCamera(%Client));
 	Observer::setFlyMode(%Client, GameBase::getPosition(%observerMarker), GameBase::getRotation(%observerMarker), false, true);
 }
 

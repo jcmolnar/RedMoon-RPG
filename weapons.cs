@@ -54,8 +54,8 @@ function ProjectileAttack(%player, %weapon) {
 			Client::sendMessage(%Client, 0, "Out of arrows.");
 		return;
 	}
-	if(!playSound($ItemData[%weapon, Sound], GameBase::getPosition(%cl)))
-		echo("SoundData "@$ItemData[%weapon, Sound]@" undefined. Item "@%weapen@" (ProjectileAttack)");
+	if(!playSound($ItemData[%weapon, Sound], GameBase::getPosition(%Client)))
+		echo("SoundData "@$ItemData[%weapon, Sound]@" undefined. Item "@%weapon@" (ProjectileAttack)");
 
 	%vel = $ItemData[%weapon, Range];
 	%zoffset = 0.44;

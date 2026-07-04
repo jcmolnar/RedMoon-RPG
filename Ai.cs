@@ -240,7 +240,7 @@ function AI::setWeapons(%aiName, %loadout, %IsMaster) {
 	AI::NextWeapon(%aiId);	//this way the bot spawns and has a weapon in hand
 }
 
-function AI::HardCodedSkills(%aiId, %class) {
+function AI::HardCodedSkills(%aiId, %class, %IsMaster) {
 
 	%lvl = getFinalLVL(%aiId);
 	if(%lvl <= 0)
@@ -1477,7 +1477,7 @@ function RPG::isAiControlled(%clientId)
 {
 //	dbecho($dbechoMode, "RPG::isAiControlled(" @ %clientId @ ")");
 
-	if($BotInfoAiName[%cientId] != "" || $SpawnBotInfo[%clientId] != "")
+	if($BotInfoAiName[%clientId] != "" || $SpawnBotInfo[%clientId] != "")
 		return True;
 	else
 		return False;

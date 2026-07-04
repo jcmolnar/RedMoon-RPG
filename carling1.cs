@@ -14,18 +14,18 @@ function material::drop(%w, %w2, %client)
 		else if(%h == "pup")		%list = "Crystal Cider Silver DogWood";
 		else if(%h == "shaman")		%list = "DogWood Green_Fabric";
 		else if(%h == "warrior")	%list = "Silver Gold Dark_Fabric Cherry_Wood Amber Ruby";
-		else if(%h == "hunter")		%list = "Silver Gold Dark_Fabric Pear Cherry_Wood Amber Ruby Emerald";
+		else if(%h == "hunter")		%list = "Silver Gold Dark_Fabric Pearl Cherry_Wood Amber Ruby Emerald";
 		else if(%h == "gloom")		%list = "Brass Ivory";
-		else if(%h == "alchemist")	%list = "Silver Gold Pear Ruby Amber";
+		else if(%h == "alchemist")	%list = "Silver Gold Pearl Ruby Amber";
 		else if(%h == "berserker")	%list = "DogWood Ivory Coral Bronze Quartz Ruby";
-		else if(%h == "scourge")	%list = "Silver Gold Pear Ruby Amber Quartz Coral";
+		else if(%h == "scourge")	%list = "Silver Gold Pearl Ruby Amber Quartz Coral";
 		else if(%h == "soldier")	%list = "Iron Steel Gold Silver Bronze Copper Brass Pine White_Pine";
 		else if(%h == "leader")		%list = "Pine White_Pine Cyprus_Pine Poplar Cider Oak Redwood Dogwood Maple Cherry_wood Mahongany Light_Fabric";
 		else if(%h == "fury")		%list = "Leather_Fabric Pink_Fabric Purple_Fabric Hard_Leather_Fabric Red_Fabric Hide_Fabric Black_Fabric Blue_Fabric Brass Copper Bronze Silver Gold Iron Steel Platinum";
 		else if(%h == "matyr")		%list = "Ivory Coral Quartz Crystal Lapis Pearl Amber Ruby Emerald Diamond Valorite Brass Copper Bronze Silver Gold Iron Steel Platinum Pine White_Pine Cyprus_Pine Poplar Cider Oak Redwood Dogwood Maple Cherry_wood Green_Fabric Dark_Fabric Light_Fabric";
-		else if(%h == "giant")		%list = "Iron Steel Platnium Mythril Titanium Cider Oak Redwood Dogwood Maple Cherry_wood Mahongany Amber Ruby Emeral Diamond Valorite Hard_Leather_Fabric Red_Fabric Hide_Fabric Black_Fabric Blue_Fabric Green_Fabric Dark_Fabric Light_Fabric Elven_Fabric";
-		else if(%h == "terror")		%list = "Steel Platnium Mythril Titanium Cider Oak Redwood Dogwood Maple Cherry_wood Mahongany Amber Ruby Emeral Diamond Valorite Dark_Fabric Light_Fabric Elven_Fabric";
-		else if(%h == "rocko")		%list = "Iron Steel Platnium Mythril Titanium Cider Oak Redwood Dogwood Maple Cherry_wood Mahongany Amber Ruby Emeral Diamond Valorite Hard_Leather_Fabric Red_Fabric Hide_Fabric Black_Fabric Blue_Fabric Green_Fabric Dark_Fabric Light_Fabric Elven_Fabric";
+		else if(%h == "giant")		%list = "Iron Steel Platinum Mythril Titanium Cider Oak Redwood Dogwood Maple Cherry_wood Mahongany Amber Ruby Emerald Diamond Valorite Hard_Leather_Fabric Red_Fabric Hide_Fabric Black_Fabric Blue_Fabric Green_Fabric Dark_Fabric Light_Fabric Elven_Fabric";
+		else if(%h == "terror")		%list = "Steel Platinum Mythril Titanium Cider Oak Redwood Dogwood Maple Cherry_wood Mahongany Amber Ruby Emerald Diamond Valorite Dark_Fabric Light_Fabric Elven_Fabric";
+		else if(%h == "rocko")		%list = "Iron Steel Platinum Mythril Titanium Cider Oak Redwood Dogwood Maple Cherry_wood Mahongany Amber Ruby Emerald Diamond Valorite Hard_Leather_Fabric Red_Fabric Hide_Fabric Black_Fabric Blue_Fabric Green_Fabric Dark_Fabric Light_Fabric Elven_Fabric";
 		else messageall(1,"Error: 001 "@client::getname(%client));
 
 		//Brass Copper Bronze Silver Gold Iron Steel Platinum Mythril Titanium

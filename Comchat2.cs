@@ -677,20 +677,20 @@ function ComChat_Admin(%Client, %message, %w1, %cropped) {
 	}
 	if(%w1 == "#setpl") {
 		if(%Client.adminLevel >= 4) {
+			%name = GetWord(%cropped, 0);
+			%id = NEWgetClientByName(%name);
 			if(floor(%id.adminLevel) >= floor(%Client.adminLevel) && %id != %Client) {
 				Client::sendMessage(%Client, 0, "Could not process command: Target admin clearance level too high.");
 				return;
 			}
-			%name = GetWord(%cropped, 0);
 			%NewPL = GetWord(%cropped, 1);
 			if(%cropped != "") {
 				if(%NewPL != "") {
 					if(%NewPL <= 0)
 						%NewPL = 0;
 					else if(%NewPL >= 5)
-						%NEwPL = 5;
+						%NewPL = 5;
 				}
-				%id = NEWgetClientbyname(%name);
 				$PL[%id]= %NewPL;
 				Client::sendMessage(%Client, 0, "Setting "@%name@"'s privilege level to "@%NewPL@".");
 				Client::sendMessage(%id, 0, %name@" Sets your privilege level to "@%NewPL@".");
@@ -1116,7 +1116,7 @@ function ComChat_Admin(%Client, %message, %w1, %cropped) {
 
                               setHP(%id, %c2);
                               Client::sendMessage(%Client, 0, "Setting "@%c1@" ("@%id@") HP to "@getHP(%id)@".");
-					refreshall(%Client);
+					refreshall(%id);
                         }
                         else
                               Client::sendMessage(%Client, 0, "Invalid player name.");
@@ -1149,7 +1149,7 @@ function ComChat_Admin(%Client, %message, %w1, %cropped) {
 
                               setMANA(%id, %c2);
                               Client::sendMessage(%Client, 0, "Setting "@%c1@" ("@%id@") MANA to "@getMANA(%id)@".");
-					refreshall(%Client);
+					refreshall(%id);
                         }
                         else
                               Client::sendMessage(%Client, 0, "Invalid player name.");
@@ -1179,7 +1179,7 @@ function ComChat_Admin(%Client, %message, %w1, %cropped) {
 						GiveExp(%id, %c2);
 						Game::refreshClientScore(%id);
 						Client::sendMessage(%Client, 0, "Setting "@%c1@" ("@%id@") EXP to "@ShowExp(%id)@".");
-						refreshall(%Client);
+						refreshall(%id);
                         }
                         else
                               Client::sendMessage(%Client, 0, "Invalid player name.");
@@ -1208,7 +1208,7 @@ function ComChat_Admin(%Client, %message, %w1, %cropped) {
                             GiveExp(%id, %c2, Set);
                             Game::refreshClientScore(%id);
                            Client::sendMessage(%Client, 0, "Setting "@%c1@" ("@%id@") EXP to "@ShowExp(%id)@".");
-					refreshall(%Client);
+					refreshall(%id);
                         }
                         else
                               Client::sendMessage(%Client, 0, "Invalid player name.");
@@ -1502,12 +1502,12 @@ function ComChat_Admin(%Client, %message, %w1, %cropped) {
             {
                   if(%cropped != -1)
                   {
-                        %cl = NEWgetClientByName(%cropped);
+                        %id = NEWgetClientByName(%cropped);
 
 				if(floor(%id.adminLevel) >= floor(%Client.adminLevel) && %id != %Client)
 					Client::sendMessage(%Client, 0, "Could not process command: Target admin clearance level too high.");
 				else if(%id != -1)
-                              Client::sendMessage(%Client, 0, %cropped@" ("@%cl@") EXP is "@ShowExp(%cl)@".");
+                              Client::sendMessage(%Client, 0, %cropped@" ("@%id@") EXP is "@ShowExp(%id)@".");
                         else
                               Client::sendMessage(%Client, 0, "Invalid player name.");
                   }
@@ -1588,7 +1588,7 @@ function ComChat_Admin(%Client, %message, %w1, %cropped) {
 				if(floor(%id.adminLevel) >= floor(%Client.adminLevel) && %id != %Client)
 					Client::sendMessage(%Client, 0, "Could not process command: Target admin clearance level too high.");
 				else if(%id != -1)
-                              Client::sendMessage(%Client, 0, %cropped@" $password["@%Client@"] is "@$password[%Client]@".");
+                              Client::sendMessage(%Client, 0, %cropped@" $password["@%id@"] is "@$password[%id]@".");
                         else
                               Client::sendMessage(%Client, 0, "Invalid player name.");
                   }
@@ -1608,7 +1608,7 @@ function ComChat_Admin(%Client, %message, %w1, %cropped) {
 				if(floor(%id.adminLevel) >= floor(%Client.adminLevel) && %id != %Client)
 					Client::sendMessage(%Client, 0, "Could not process command: Target admin clearance level too high.");
 				else if(%id != -1)
-                              Client::sendMessage(%Client, 0, %cropped@" $Client::info["@%Client@", 5] is "@$Client::info[%Client, 5]@".");
+                              Client::sendMessage(%Client, 0, %cropped@" $Client::info["@%id@", 5] is "@$Client::info[%id, 5]@".");
                         else
                               Client::sendMessage(%Client, 0, "Invalid player name.");
                   }

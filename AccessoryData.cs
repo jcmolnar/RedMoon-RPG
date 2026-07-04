@@ -726,23 +726,21 @@ function longstaff4Image::onFire(%player, %slot) {
 		GameBase::getLOSinfo(%player, $ItemData[$ClientData[%cl, UsingWeapon], Range]);
 		Gravityshot.Weapon_SpellAttack(%cl, %player, $los::object);
 	}
-	MeleeAttack(%player, 2, $ClientData[%cl, UsingWeapon]);
-}
-
-MakeItem("Drag Sword", "Drag Sword", "6 100 1 50 2 50 3 50 4 50 5 50 6 50 20 Poison 20 Petrify 20 Blind 20 Mute 20",				$SwordAccessoryType, 1, "A unique sword forged from Leviathan teeth.", $Headers::B, "longstaff", "Weapon", false, ",Wizard,",	$SlashingDamageType, 50, 4);
-$ItemCost["Drag_Sword"] = 100000;
-$ItemData["Drag_Sword", ToUseSkill] = "LVL 50";
-function greensword040Image::onFire(%player, %slot) {
-	%cl = GameBase::getOwnerClient(%player); $los::object = "";
-	if($ClientData[%cl, UsingWeapon] == "Drag_Sword") {
+	if($ClientData[%cl, UsingWeapon] == "Drag_Sword") {	//Drag Sword is longstaff/delay4 -> shares this model
 		GameBase::getLOSinfo(%player, $ItemData[$ClientData[%cl, UsingWeapon], Range]);
 		voodooshot.Weapon_SpellAttack(%cl, %player, $los::object);
 	}
 	MeleeAttack(%player, 2, $ClientData[%cl, UsingWeapon]);
 }
 
+MakeItem("Drag Sword", "Drag Sword", "6 100 1 50 2 50 3 50 4 50 5 50 6 50 20 Poison 20 Petrify 20 Blind 20 Mute 20",				$SwordAccessoryType, 1, "A unique sword forged from Leviathan teeth.", $Headers::B, "longstaff", "Weapon", false, ",Wizard,",	$SlashingDamageType, 50, 4);
+$ItemCost["Drag_Sword"] = 100000;
+$ItemData["Drag_Sword", ToUseSkill] = "LVL 50";
+// Drag Sword's voodooshot branch moved into longstaff4Image::onFire above (its real model,
+// longstaff/delay4). The old greensword040Image handler was a dead model (no weapon uses it).
+
 MakeItem("Punisher", "Punisher", "6 0",				$SwordAccessoryType, 1, "The very powerful staff owned by <f1>Chee2<f0>.", $Headers::B, "greensword", "Weapon", false,  ",Priest,Warrior,Rogue,Wizard,",	$SlashingDamageType, 5, 1.25);
-function longstaff025Image::onFire(%player, %slot) {
+function greensword125Image::onFire(%player, %slot) {	//Punisher is greensword/delay1.25 -> this model
 	%cl = GameBase::getOwnerClient(%player); $los::object = "";
 	if($ClientData[%cl, UsingWeapon] == "Punisher") {
 		GameBase::getLOSinfo(%player, $ItemData[$ClientData[%cl, UsingWeapon], Range]);

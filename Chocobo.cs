@@ -939,7 +939,7 @@ function processMenuTradeing(%Client, %opt) {
 
 				Client::addMenuItem(%Client, %choice @ %name, %cl);
 				%index++;
-				if(%char == -1)
+				if(%index >= 10) //key list "1234567890" only has 10 slots
 					return;
 			}
 		}
@@ -970,7 +970,7 @@ function MenuBreeding(%Client) {
 
 				Client::addMenuItem(%Client, %choice @ %name, %cl);
 				%index++;
-				if(%char == -1)
+				if(%index >= 10) //key list "1234567890" only has 10 slots
 					return;
 			}
 		}

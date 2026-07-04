@@ -134,7 +134,7 @@ function GameBase::getFOVinfo(%Client, %range) { //used mainly for bots
 		if(%c > 1)
 			%cl = %idList[floor(%c/2)];
 		else
-			%cl = %idList[%c];
+			%cl = %idList[%c-1];
 
 		$fov::position = GameBase::getPosition(%cl);
 		$fov::object = Client::getOwnedObject(%cl);
@@ -610,7 +610,7 @@ function Flash(%Client) {
 }
 
 
-//$RM_Time = "ô¿@ Wed Feb 06 17:14:56 2002";
+//$RM_Time = "ï¿½ï¿½@ Wed Feb 06 17:14:56 2002";
 function StartRMTime() {
 	if(!$StartRMTime) {
 		$StartRMTime = true;

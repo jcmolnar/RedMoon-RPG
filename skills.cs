@@ -143,10 +143,10 @@ function SkillCounter(%Client, %dClient, %skilltype, %showmsg) {
 
 		if($SkillCounter[%Client, %skilltype] >= %b) {
 			$SkillCounter[%Client, %skilltype] -= %b;
-			$AttackBonus[%skilltype, %sClient]++;
+			$AttackBonus[%skilltype, %Client]++;
 
 			if(%showmsg)
-				Client::sendMessage(%Client, $MsgBeige, "Your skill in "@$SkillDesc[%skilltype]@" increased by 1. ("@$AttackBonus[%skilltype, %sClient]@")");
+				Client::sendMessage(%Client, $MsgBeige, "Your skill in "@$SkillDesc[%skilltype]@" increased by 1. ("@$AttackBonus[%skilltype, %Client]@")");
 		}
 	}
 }

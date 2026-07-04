@@ -1352,17 +1352,20 @@ echo("Can mount PASS %this "@%this);
 //echo("Can mount FAILED %this "@%this);
 }
 
-//function Armor::jump(%this,%mom)
-//{
-//echo("jumped");
-//   Armor::dismount(%this,%mom);
-//}
+function Armor::jump(%this, %mom)
+{
+	// %this is the object being controlled when jump fires. If it's a chocobo currently
+	// being ridden, jumping hops the rider off. Normal players (and vehicles) share the
+	// "Armor" className, so fall through to the default Player::jump handling for them.
+	if($isChocobo[%this] == "isUsed")
+		Armor::dismount(%this, %mom);
+	else
+		Player::jump(%this, %mom);
+}
 
 function Armor::dismount(%this, %mom) {
-echo("dismount");
-	%armor = Player::getArmor(%object);
-	%Client = Player::getClient(%object);
-   if(%cl != -1)
+	%cl = %this.clLastMount;	//the rider's client, stored on mount (Armor::onCollision)
+   if(%cl != -1 && %cl != "")
    {
       %pl = Client::getOwnedObject(%cl);
       if(getObjectType(%pl) == "Player")
@@ -1385,6 +1388,7 @@ echo("dismount");
       		}
 				%pl.driver = "";
 				%pl.vehicle = "";
+				Chocobo::Delete(%cl);	//remove the chocobo (same cleanup as the menu "Return")
 			}
 			else
 				Client::sendMessage(%cl,0,"Can not dismount - Obstacle in the way.~wError_Message.wav");

@@ -75,7 +75,7 @@ function Status::Mute(%Client, %SClient, %mutelvl) {
 			else
 				Client::sendMessage(%Client, $MsgRed, "You Muted yourself!");
 			Player::setDamageFlash(%Client, 5);
-			UpdateStatusList(%Client, "Blind", "add");
+			UpdateStatusList(%Client, "Mute", "add");
 			return true;
 		}
 	}
@@ -136,7 +136,7 @@ function RefreshStatus(%time) { //Update all status victims(every 5 sec)
 	for(%i = 0; (%Client = getWord($StatusList[Poison], %i)) != -1; %i++) {
 		$ClientData[%Client, Poison] -= 5;
 		if($ClientData[%Client, Poison] <= 0) {
-			if(!$ClientData[%Client, Poison] < -666)
+			if($ClientData[%Client, Poison] >= -666)
 				Client::sendMessage(%Client, 0, "You are no longer Poisoned.");
 			$ClientData[%Client, Poison] = "";
 			UpdateStatusList(%Client, "Poison", "remove");
@@ -149,7 +149,7 @@ function RefreshStatus(%time) { //Update all status victims(every 5 sec)
 	for(%i = 0; (%Client = getWord($StatusList[Blind], %i)) != -1; %i++) {
 		$ClientData[%Client, Blind] -= 5;
 		if($ClientData[%Client, Blind] <= 0) {
-			if(!$ClientData[%Client, Blind] < -666)
+			if($ClientData[%Client, Blind] >= -666)
 				Client::sendMessage(%Client, 0, "You are no longer Blinded.");
 			$ClientData[%Client, Blind] = "";
 			//if(Player::isAiControlled(%Client))
@@ -166,7 +166,7 @@ function RefreshStatus(%time) { //Update all status victims(every 5 sec)
 	for(%i = 0; (%Client = getWord($StatusList[Mute], %i)) != -1; %i++) {
 		$ClientData[%Client, Mute] -= 5;
 		if($ClientData[%Client, Mute] <= 0) {
-			if(!$ClientData[%Client, Mute] < -666)
+			if($ClientData[%Client, Mute] >= -666)
 				Client::sendMessage(%Client, 0, "You are no longer Muted.");
 			$ClientData[%Client, Mute] = "";
 			UpdateStatusList(%Client, "Mute", "remove");
@@ -177,7 +177,7 @@ function RefreshStatus(%time) { //Update all status victims(every 5 sec)
 	for(%i = 0; (%Client = getWord($StatusList[Petrify], %i)) != -1; %i++) {
 		$ClientData[%Client, Petrify] -= 5;
 		if($ClientData[%Client, Petrify] <= 0) {
-			if(!$ClientData[%Client, Petrify] < -666)
+			if($ClientData[%Client, Petrify] >= -666)
 				Client::sendMessage(%Client, 0, "You are no longer Petrified.");
 			$ClientData[%Client, Petrify] = "";
 			if(Player::isAiControlled(%Client)) {

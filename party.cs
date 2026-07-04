@@ -98,5 +98,5 @@ function GetPartyListIAmIn(%Client){
 	%inv = GetWord(%p, 1);
 
 	if(%inv == -1)
-		return $ClientData[%Client, partylist];
+		return $ClientData[%id, partylist];
 }

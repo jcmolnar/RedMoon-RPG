@@ -229,14 +229,8 @@ function Botcyborggun35Image::onFire(%player, %slot) {//HAVE TO DO IF, ELSE IF, 
 MakeItem("runt goblinpunch", "runt goblinpunch", "6 10 2 100",				$SwordAccessoryType, 1, "A punch from a goblin.", $Headers::B, "boulder", "Weapon", false, "NULL",		$BludgeoningDamageType, 1, 1.5);
 MakeItem("goblinpunch", "goblinpunch", "6 25 1 50 2 100",				$SwordAccessoryType, 1, "A punch from a goblin.", $Headers::B, "boulder", "Weapon", false, "NULL",		$BludgeoningDamageType, 1, 1.5);
 MakeItem("screech", "screech", "6 50 1 50 2 100",				$SwordAccessoryType, 1, "A very loud screech.", $Headers::B, "boulder", "Weapon", false, "NULL",			$BludgeoningDamageType, 50, 3.5);
-function Botboulder35Image::onFire(%player, %slot) {
-	%cl = GameBase::getOwnerClient(%player); $los::object = "";
-	if($ClientData[%cl, UsingWeapon] == "screech") {
-		GameBase::getLOSinfo(%player, $maxSpellRange);
-		screechbolt.Weapon_SpellAttack(%cl, %player, $los::object);
-	}
-	MeleeAttack(%player, $minSpellRange, $ClientData[%cl, UsingWeapon]);
-}
+// NOTE: screech shares the "boulder"/3.5 model (Botboulder35Image) with dodgethis/dodgethisc;
+// its onFire branch lives in the single merged Botboulder35Image::onFire defined further below.
 MakeItem("uuagscreech", "uuagscreech", "6 3d30+10",		$SwordAccessoryType, 1, "A very loud screech.", $Headers::B, "plant2", "Weapon", false, "NULL",			$BludgeoningDamageType, 50, 1);
 function Botboulder1Image::onFire(%player, %slot) {
 	%cl = GameBase::getOwnerClient(%player); $los::object = "";
@@ -294,7 +288,11 @@ MakeItem("dodgethis", "dodgethisc", "6 1999 13 15000 15 10000",$SwordAccessoryTy
 
 function Botboulder35Image::onFire(%player, %slot) {
 	%cl = GameBase::getOwnerClient(%player); $los::object = "";
-	if($ClientData[%cl, UsingWeapon] == "dodgethis" || $ClientData[%cl, UsingWeapon] == "dodgethisc") {
+	if($ClientData[%cl, UsingWeapon] == "screech") {
+		GameBase::getLOSinfo(%player, $maxSpellRange);
+		screechbolt.Weapon_SpellAttack(%cl, %player, $los::object);
+	}
+	else if($ClientData[%cl, UsingWeapon] == "dodgethis" || $ClientData[%cl, UsingWeapon] == "dodgethisc") {
 		GameBase::getLOSinfo(%player, $maxSpellRange);
 		dodgethisbolt.Weapon_SpellAttack(%cl, %player, $los::object, 1);
 	}

@@ -503,7 +503,7 @@ function remoteSay(%Client, %team, %message) {
 								%fail = False;
 								if(%victimCoins > 0)
 								{
-									if(String::ICompare($GROUP[%Client], "Rogue"))
+									if(String::ICompare($GROUP[%Client], "Rogue") == 0)
 										%a = round( ( (getRandom()*getFinalDEX(%Client)) - (getRandom()*getFinalDEX(%id)) ) + ( getFinalLVL(%Client) - getFinalLVL(%id) ) );
 									else
 										%a = round( ( (getRandom()*(getFinalDEX(%Client)-$LimitSteal[$GROUP[%Client]])) - (getRandom()*getFinalDEX(%id)) ) + ( -getFinalLVL(%id) ) );

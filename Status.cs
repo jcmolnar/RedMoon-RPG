@@ -16,7 +16,7 @@ function Status::Poison(%Client, %SClient, %poisonlvl) {
 	if(!%stop) {
 		%time = Cap((getFinalLVL(%SClient) + %poisonlvl) - (getFinalLVL(%Client) + floor(getRandom()*25)), 0, $MaxStatusTime);
 		if(%time > 0) {
-			$ClientData[%Client, Poison] += Cap($ClientData[%Client, Poison]+%time, 0, $MaxStatusTime);
+			$ClientData[%Client, Poison] = Cap($ClientData[%Client, Poison]+%time, 0, $MaxStatusTime);
 			if(%Client != %SClient) {
 				Client::sendMessage(%Client, $MsgRed, Client::getName(%SClient)@" just Poisoned you!");
 				Client::sendMessage(%SClient, $MsgRed, "You Poisoned "@Client::getName(%Client)@"!");
@@ -41,7 +41,7 @@ function Status::Blind(%Client, %SClient, %blindlvl) {
 	if(!%stop) {
 		%time = Cap((getFinalLVL(%SClient) + %blindlvl) - (getFinalLVL(%Client) + floor(getRandom()*25)), 0, $MaxStatusTime);
 		if(%time > 0) {
-			$ClientData[%Client, Blind] += Cap($ClientData[%Client, Blind]+%time, 0, $MaxStatusTime);
+			$ClientData[%Client, Blind] = Cap($ClientData[%Client, Blind]+%time, 0, $MaxStatusTime);
 			if(%Client != %SClient) {
 				Client::sendMessage(%Client, $MsgRed, Client::getName(%SClient)@" just Blinded you!");
 				Client::sendMessage(%SClient, $MsgRed, "You Blinded "@Client::getName(%Client)@"!");
@@ -67,7 +67,7 @@ function Status::Mute(%Client, %SClient, %mutelvl) {
 	if(!%stop) {
 		%time = Cap((getFinalLVL(%SClient) + %mutelvl) - (getFinalLVL(%Client) + floor(getRandom()*50)), 0, $MaxStatusTime);
 		if(%time > 0) {
-			$ClientData[%Client, Mute] += Cap($ClientData[%Client, Mute]+%time, 0, $MaxStatusTime);
+			$ClientData[%Client, Mute] = Cap($ClientData[%Client, Mute]+%time, 0, $MaxStatusTime);
 			if(%Client != %SClient) {
 				Client::sendMessage(%Client, $MsgRed, Client::getName(%SClient)@" just Muted you!");
 				Client::sendMessage(%SClient, $MsgRed, "You Muted "@Client::getName(%Client)@"!");
@@ -92,7 +92,7 @@ function Status::Petrify(%Client, %SClient, %petrifylvl) {
 	if(!%stop) {
 		%time = Cap((getFinalLVL(%SClient) + %petrifylvl) - (getFinalLVL(%Client) + floor(getRandom()*100)), 0, $MaxStatusTime);
 		if(%time > 0) {
-			$ClientData[%Client, Petrify] += Cap($ClientData[%Client, Petrify]+%time, 0, $MaxStatusTime);
+			$ClientData[%Client, Petrify] = Cap($ClientData[%Client, Petrify]+%time, 0, $MaxStatusTime);
 			if(%Client != %SClient) {
 				Client::sendMessage(%Client, $MsgRed, Client::getName(%SClient)@" just Petrified you!");
 				Client::sendMessage(%SClient, $MsgRed, "You Petrified "@Client::getName(%Client)@"!");

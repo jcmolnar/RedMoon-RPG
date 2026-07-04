@@ -934,7 +934,7 @@ function CompleteSmith(%Client, %id, %cost, %item, %tempsmith, %multiplier) {
 
 	for(%i = 0; (%w = GetWord(%tempsmith, %i)) != -1; %i+=2)
 	{
-		%w2 = Cap(floor(GetWord(%tempsmith, %i+1)) * multiplier, 1, 99);
+		%w2 = Cap(floor(GetWord(%tempsmith, %i+1)) * %multiplier, 1, 99);
 
 		Client::addItemCount(%Client, %w, -%w2);
 	}

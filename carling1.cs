@@ -184,7 +184,7 @@ function cage(%Client,%time,%spell)
 	}
 	else
 	{
-		$ClientData[%Client, Petrify] += Cap($ClientData[%Client, Petrify]+%time, 0, $MaxStatusTime);
+		$ClientData[%Client, Petrify] = Cap($ClientData[%Client, Petrify]+%time, 0, $MaxStatusTime);
 		if(Player::isAiControlled(%Client)) {
 			$frozen[%Client] = True;
 			AI::setVar($BotInfoAiName[%Client], SpotDist, 0);

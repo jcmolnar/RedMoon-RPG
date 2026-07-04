@@ -72,7 +72,7 @@ function Chocobo::Get(%Client, %opt, %name, %color, %sex, %YAge, %DAge, %TempAge
 
 function Chocobo::Trade(%ClientHost, %ClientBuyer, %opt) { //Trade or Sell
 	%Buyername = Client::getname(%ClientBuyer);
-	%Hostname = Client::getname(%ClientBuyer);
+	%Hostname = Client::getname(%ClientHost);
 
 	//$MenuTradeBuyerId[%Client]
 	$MenuTradeHostId[%ClientBuyer] = %ClientHost;	//Save host Id on buyer
@@ -152,7 +152,7 @@ function Chocobo::Trade(%ClientHost, %ClientBuyer, %opt) { //Trade or Sell
 function Chocobo::Breed(%ClientHost, %ClientBuyer, %opt) {
 
 	%Buyername = Client::getname(%ClientBuyer);
-	%Hostname = Client::getname(%ClientBuyer);
+	%Hostname = Client::getname(%ClientHost);
 
 	$MenuBreedHostId[%ClientBuyer] = %ClientHost;
 
@@ -404,13 +404,15 @@ function Chocobo::Clear(%Client, %Choco) {
 	if($Chocobo[%Client, %Choco] == false || $Chocobo[%Client, %Choco] == "" || !$HasLoadedAndSpawned[%Client])
 		return;
 
+	%name = Client::getName(%Client);
+
 	Client::sendMessage(%Client, 1, "Clearing "@$ChocoboName[%Client, $Chocobo[%Client, %Choco]]@" Num: "@%Choco); //For testing
 
 	$Chocobo[%Client]--;
 	$funk::var["[\""@%name@"\", 5, 1, 10, 11]"] = $Chocobo[%Client];
 	$funk::var["[\""@%name@"\", 5, "@%Choco@", 10, 21]"] = "";
 	$Chocobo[%Client, %Choco] = "false";
-	$ChocoboTakeCare[%Client, %i] = "";
+	$ChocoboTakeCare[%Client, %Choco] = "";
 	$ChocoboName[%Client, %Choco] = "Free save slot";
 	$ChocoboColor[%Client, %Choco] = "";
 	$ChocoboSex[%Client, %Choco]  = "";
@@ -1090,9 +1092,9 @@ function processMenuViewTradeInfo(%Client, %opt) {
 	Client::addMenuItem(%Client, "6Don't Trade", "Back");
 }
 
-function processMenuViewTradeInfo(%Client, %opt) {
+function processMenuTradeChocobo(%Client, %opt) {
 
-	dbecho($dbechoMode, "processMenuViewTradeInfo(" @ %Client @ ", " @ %opt @ ")");
+	dbecho($dbechoMode, "processMenuTradeChocobo(" @ %Client @ ", " @ %opt @ ")");
 
 	if(%opt == "Trade") {
 		Chocobo::Trade(%Client, $MenuTradeBuyerId[%Client], Trade);

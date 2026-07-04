@@ -623,7 +623,7 @@ function ComChat_Admin(%Client, %message, %w1, %cropped) {
 					Client::sendMessage(%Client, 0, "Could not process command: Target admin clearance level too high.");
                         else if(%id != -1)
                         {
-					$SpellCastStep[%Client] = "";
+					$SpellCastStep[%id] = "";
                               Client::sendMessage(%Client, 0, "Spell flag reset.");
                         }
                         else

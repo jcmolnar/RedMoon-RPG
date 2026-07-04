@@ -850,7 +850,7 @@ MineData Bomb3002
 	triggerRadius = 10.5;
 	maxDamage = 0.10;
 };
-function Bomb3001::onAdd(%this)
+function Bomb3002::onAdd(%this)
 {
 	schedule("Mine::Detonate(" @ %this @ ");", 0.2, %this);
 }

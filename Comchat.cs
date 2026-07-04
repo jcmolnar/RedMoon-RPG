@@ -360,7 +360,7 @@ function remoteSay(%Client, %team, %message) {
 	}
 	//================================================================================================================
       if(%w1 == "#name") {
-		if($CanName[%Client] == true && $OldName[%Client] = "") {
+		if($CanName[%Client] == true && $OldName[%Client] == "") {
 			if(%cropped != "") {
 				%len = Chocobo::Getlen(%cropped);
 				if(%len > 16) {
@@ -394,7 +394,7 @@ function remoteSay(%Client, %team, %message) {
 			else
 				Chocobo::NewName(%Client, TryAgain, $ChocoboTempName[%Client]);
 		}
-		else if($CanName[%Client] == true && $OldName[%Client] = true) {
+		else if($CanName[%Client] == true && $OldName[%Client] == true) {
 			if(%cropped != "") {
  				%Check = Chocobo::InvalidChar(%cropped);
 				if(%Check == false) {
@@ -504,9 +504,9 @@ function remoteSay(%Client, %team, %message) {
 								if(%victimCoins > 0)
 								{
 									if(String::ICompare($GROUP[%Client], "Rogue"))
-										%a = round( ( (getRandom()*getFinalDEX(%Client)) - (getRandom()*getFinalDEX(%cl)) ) + ( getFinalLVL(%Client) - getFinalLVL(%cl) ) );
+										%a = round( ( (getRandom()*getFinalDEX(%Client)) - (getRandom()*getFinalDEX(%id)) ) + ( getFinalLVL(%Client) - getFinalLVL(%id) ) );
 									else
-										%a = round( ( (getRandom()*(getFinalDEX(%Client)-$LimitSteal[$GROUP[%Client]])) - (getRandom()*getFinalDEX(%cl)) ) + ( -getFinalLVL(%cl) ) );
+										%a = round( ( (getRandom()*(getFinalDEX(%Client)-$LimitSteal[$GROUP[%Client]])) - (getRandom()*getFinalDEX(%id)) ) + ( -getFinalLVL(%id) ) );
 									if(%a > 0)
 									{
 										%amount = floor(%a * getRandom() * 50); // 1.2 100

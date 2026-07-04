@@ -1111,7 +1111,9 @@ function GetSmithCombo(%Client, %list) {
 						break;
 					}
 				}
-				if(%Nsound == "")
+				if(%Nsound != "")
+					%sound = %Nsound;
+				else
 					%sound = %s[0]@%s[1];
 			}
 		////////////////////////////////////////

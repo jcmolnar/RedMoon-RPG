@@ -1,5 +1,31 @@
 # Red Moon RPG — script bug-fix log
 
+## FLAG DECISIONS (resolved with the user, applied in commits 711dbbd / bae013c / 68c5e01)
+- #steal: FLIP — Rogues now get the self-level (better) formula; non-Rogues get the $LimitSteal penalty. (comchat.cs, added `== 0`.)
+- Status/cage durations: FIX — changed `X += Cap(X+time,...)` to `X = Cap(...)` in all 4 Status.cs
+  effects + carling1 cage, so durations respect the 10-min $MaxStatusTime cap. (Alcohol's
+  `Alvl += %res` is intentional accumulation — left.)
+- Smith material cost: FIX — `count * multiplier` bareword -> `%multiplier` (99-arrow batches
+  now consume 99x materials). RETUNE pricing if needed.
+- Carling PK-logging: LEAVE as-is (flagged only; still cages on every lowbie PK).
+- carling1 drop typos: CONFIRMED typos (Pearl/Platinum/Emerald are the real item names; Pear/
+  Platnium/Emeral appear only as bare drop-list words) — FIXED.
+- comchat2 admin commands: FIX ALL — #setpl guard reordered (resolve %id first), #getexp uses
+  %id consistently, #getpassword/#getotherinfo show the target's data, 4 set-cmds refreshall(%id).
+- Drag_Sword/Punisher onFire: CONFIRMED misattached (traced MakeItem model-name derivation) —
+  Drag_Sword branch moved into longstaff4Image::onFire; Punisher handler renamed to
+  greensword125Image::onFire.
+- Chocobo trade/breed menus: FIX — `if(%char == -1)` (never true) -> `if(%index >= 10)` loop cap.
+- Chocobo jump-dismount: WIRE UP — new guarded `Armor::jump` (chocobo -> dismount, else
+  Player::jump) + fixed `Armor::dismount` vars + Chocobo::Delete cleanup. NOTE: assumes the jump
+  callback fires with %this = the controlled chocobo; needs an in-game test to confirm it doesn't
+  disturb normal-player jumping (guarded to fall through to Player::jump, so it should be safe).
+- LEFT as-is (user call): assassin bounty-timeout reversed $state key; DeusKeys dead code;
+  ConvNum '.05' cosmetic; AI::SayZone self-send cosmetic.
+
+---
+
+
 Source: extracted from `scripts.vol` (packed 2015-10-17), the newer of the two
 copies (the `Downloads/rmrpg` tree is an older 2002-2008 snapshot). This folder
 is the git-tracked canonical source; deploy = loose scripts here with

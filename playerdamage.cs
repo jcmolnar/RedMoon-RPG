@@ -313,7 +313,7 @@ function Player::onDamage(%this,%type,%value,%pos,%vec,%mom,%vertPos,%quadrant,%
 		%sClient = %object;
 		$BotShootingAt_WithId[%dClient] = "";
 		$CanDoSpellDmg[%sClient] = True;
-		$ClientData[%Client, SpellDmg] = AddPoints(%sClient, 6);
+		$ClientData[%sClient, SpellDmg] = AddPoints(%sClient, 6);
 	}
 
 	%weapon = $ClientData[%sClient, UsingWeapon];
@@ -916,7 +916,7 @@ function DegradeableEffects(%object, %this, %weapon) {
 	%dClient = Player::getclient(%this);
 	if(!Player::isAiControlled(%dClient)) {
 		%damagedArmor = "";
-		for(%i = 0; (%checkItem = getWord($ClientData[%Client, "EquipList"], %i)) != -1; %i+=2) {
+		for(%i = 0; (%checkItem = getWord($ClientData[%dClient, "EquipList"], %i)) != -1; %i+=2) {
 			if($ItemData[%checkItem, type] == $BodyAccessoryType) {
 				%damagedArmor = %checkItem;
 				break;

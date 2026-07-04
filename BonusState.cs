@@ -86,7 +86,7 @@ function AddBonusStatePoints(%Client, %filter)
 	return %add;
 }
 
-function CheckBonus(%Client, %type, %type2, %typ3) {
+function CheckBonus(%Client, %type, %type2, %type3) {
 
 	for(%i = 1; %i <= $maxBonusStates; %i++) {
 

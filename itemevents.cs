@@ -604,9 +604,9 @@ function CurePotionStuff(%Client, %item, %pos) {
 
 	for(%i = 0; (%a = GetWord(%svar, %i)) != -1; %i++) {
 		%i++;
-		%res = GetWord(%data, %i);
+		%res = GetWord(%svar, %i);
 
-		if(%res != "Petrify" || %res != "Poison" || %res != "Blind" || %res != "Mute")
+		if(%res != "Petrify" && %res != "Poison" && %res != "Blind" && %res != "Mute")
 			continue;
 
 		if(%a != "21")
@@ -618,8 +618,8 @@ function CurePotionStuff(%Client, %item, %pos) {
 		}
 		else {
 			if((%id = GetClosestClient(%Client, 10)) != "") {
-				if($ClientData[%id, Pertrify] > 0) {
-					$ClientData[%id, Pertrify] = 1;
+				if($ClientData[%id, Petrify] > 0) {
+					$ClientData[%id, Petrify] = 1;
 					Client::addItemCount(%Client, %item, -1);
 					Client::sendMessage(%id, 0, Client::getName(%Client)@" uses "@$ItemData[%item, Name]@" on you.");
 					Client::sendMessage(%Client, 0, "You use "@$ItemData[%item, Name]@" on "@Client::getName(%id)@".");
@@ -766,7 +766,7 @@ function Item::DropItem(%player, %Client, %item, %delta) {
 			return true;
 		}
 		else {
-			if(Client::HasItem(%Client, %item@"0", "EquipList")) {
+			if(Client::HasItem(%Client, %item@$EquipTag, "EquipList")) {
 				Client::sendMessage(%Client, $MsgRed, "You cannot drop an equipped item!~wC_BuySell.wav");
 				return false;
 			}

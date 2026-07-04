@@ -80,4 +80,27 @@ dm.cs, DeusClient.cs, Comchat2_.cs (in old snapshot), shopping.cs, Client.cs,
 newstuff.cs, repack.cs, Carling1/2.cs — their duplicate defs don't conflict
 server-side. Confirm none are exec'd from mission/client paths before assuming dead.
 
+### 6. Chocobo.cs — MenuBreed() typo (REAL BUG, FIXED)
+- [x] Chocobo.cs:808 (the "Breed" option handler) called `MenuBreed(%Client)`, which is
+  defined nowhere — the real function is `MenuBreeding()` (Chocobo.cs:947). So choosing
+  "Breed" silently did nothing (breeding menu never opened). Fixed the call name.
+
+### Undefined-function-call scan (bare calls not defined in any script)
+Method: strip comments/strings, collect all `function` defs, find bare calls not defined
+and not obvious engine builtins. Findings:
+- [x] FIXED MenuBreed -> MenuBreeding (above).
+- [keep/dead] `fetchData` (shopping.cs) — shopping.cs isn't loaded (economy.cs is), and
+  Client.cs:645 `rpgfetchdata(){return False}//RM doesn't support this` confirms RM has no
+  fetchData. Dead-code calls. `useItem` (repack.cs) — repack.cs not loaded. Ignore both.
+- [?] FLAG `Quest(%Client, %type, false)` — remote.cs:23 (LOADED) calls it, but Quests.cs
+  defines NewQuest/FailedQuest/EndQuest, not a 3-arg `Quest`. Real undefined call in a live
+  path (remoteQuestChat). Correct target unclear — needs the quest-flow intent.
+- [?] FLAG Redplanet.cs — `add_to_fight()` (@1040-41) and `make_horse()` (@460) are called
+  but defined nowhere. Redplanet is a special event map; may be an incomplete/unused feature
+  or rely on a script that isn't loaded. Verify whether Redplanet is meant to be live.
+- [assumed-engine] `RemotePlayAnim` (Ai.cs x4), `updateBuyingList` (Station.cs x3),
+  `ClearEvents` (Comchat2.cs), `postAction`, `containerBoxFillSet`, etc. — called in loaded,
+  hot code with no near-match; since the mod actually runs, these are almost certainly
+  engine/plugin builtins, not bugs. Confirm only if they throw console "unknown command".
+
 ### Broader logic sweep — TODO (per-file reading for undefined vars, wrong logic, etc.)

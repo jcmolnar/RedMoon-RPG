@@ -805,7 +805,7 @@ function processMenuChocoboViewInfo(%Client, %opt) {
 	}
 	else if(%opt == "Breed") {
 		if($CanFeed[%Client] == true) {
-			MenuBreed(%Client);
+			MenuBreeding(%Client);
 			return;	//===
 		}
 		else {

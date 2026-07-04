@@ -1437,7 +1437,7 @@ function CheckForReservedWords(%name) {
 	for(%i = 1; %we[%i] != ""; %i++)
 	{
 		if(String::findSubStr(%name, %we[%i]) != -1)
-			return %w[%i];
+			return %we[%i];
 	}
 
 	for(%i = 1; %w[%i] != ""; %i++)
@@ -1526,7 +1526,7 @@ function TeleportToMarker(%Client, %markergroup, %testpos, %random) {
 			      %marker = Group::getObject(%group, %i);
 
 				%worldLoc = GameBase::getPosition(%marker);
-				%worldLoc = GameBase::getPosition(%marker);
+				%worldRot = GameBase::getRotation(%marker);
 
 				if(%testpos)
 				{
@@ -1880,10 +1880,10 @@ function HasThisStuff(%Client, %list) {
 			else {
 
 				if($ItemData[%w, header] == $Headers::Z)
-					%list = "QuestList";
+					%ilist = "QuestList";
 				else
-					%list = "ItemList";
-				if(Client::getItemCount(%Client, %w, %list) >= %w2)
+					%ilist = "ItemList";
+				if(Client::getItemCount(%Client, %w, %ilist) >= %w2)
 					%flag = True;
 				else
 					return False;
@@ -1916,13 +1916,13 @@ function TakeThisStuff(%Client, %list) {
 			if(String::findSubStr(%w, "Shape:_") == -1) {
 
 				if($ItemData[%w, header] == $Headers::Z)
-					%list = "QuestList";
+					%ilist = "QuestList";
 				else
-					%list = "ItemList";
+					%ilist = "ItemList";
 
-				%amount = Client::getItemCount(%Client, %w, %list);
+				%amount = Client::getItemCount(%Client, %w, %ilist);
 				if(%amount >= %w2)
-					Client::addItemCount(%Client, %w, -%w2, %list);
+					Client::addItemCount(%Client, %w, -%w2, %ilist);
 				else
 					return False;
 			}
@@ -2022,7 +2022,7 @@ function GiveThisStuff(%Client, %list, %echo) {
 			}
 		}
 		else if(%w == "EXP") {
-			if(GetLevel(getFixedExp(%Client) < 999))
+			if(GetLevel(getFixedExp(%Client)) < 999)
 			{
 				GiveExp(%Client, FixM(%w2, True));
 				if(%echo) Client::sendMessage(%Client, 0, "You received "@FixM(%w2)@" experience.");

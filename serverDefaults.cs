@@ -25,7 +25,7 @@ $Server::timeLimit = 0;
 $Server::warmupTime = 10;
 
 if($pref::lastMission == "")
-   $pref::lastMission = chee4;
+   $pref::lastMission = "RMR"; // chee4 has no .mis (24-byte stub .vol only); RMR is the real RMRPG map
 
 $Server::MinVoteTime = 45;
 $Server::VotingTime = 20;

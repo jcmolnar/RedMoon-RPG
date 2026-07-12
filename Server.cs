@@ -76,6 +76,13 @@ function createServer(%mission, %dedicated) {
 	$loadingMission = false;
 	$ME::Loaded = false;
 
+	// Load RMRPG server config. The shared root config\ServerPrefs.cs (exec'd at
+	// boot) carries RPG-mod values -- including $pref::LastMission = "rpgmap6",
+	// which RMRPG cannot load and crashes on. rmrpgserv.cs reclaims HostName /
+	// MaxPlayers / Port / LastMission here, right before the mission is chosen.
+	// (Mirrors RPG\scripts\Server.cs exec(rpgserv).)
+	exec(rmrpgserv);
+
 	if(%mission == "")
 		%mission = $pref::lastMission;
 

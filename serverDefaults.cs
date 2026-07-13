@@ -19,7 +19,7 @@ $Server::HostName = "RMRPG MOD Server";
 $Server::MaxPlayers = "16";
 $Server::HostPublicGame = true;
 $Server::AutoAssignTeams = true;
-$Server::Port = "28001";
+$Server::Port = "28002";
 
 $Server::timeLimit = 0;
 $Server::warmupTime = 10;

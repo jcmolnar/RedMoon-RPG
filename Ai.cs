@@ -1064,7 +1064,16 @@ function AI::sayLater(%clientId, %id, %msg, %msg2)
 	//dbecho($dbechoMode, "AI::sayLater(" @ %clientId @ ", " @ %guardId @ ", " @ %message @ ", " @ %look @ ")");
 
 //	Client::sendMessage(%clientId, $MsgBeige, %Name@" tells you, \""@%message@"\"");
-	remoteEval(%ClientId, "SetUpQuest", %msg, "", "", %msg2, $TownBot[%id, PIC]);
+
+	// KronosHUD: when a HUD client has the NPC window open, mirror the spoken
+	// line into it (KNPCLine). Options are NOT parsed from %msg/%msg2 here --
+	// they come from the SetUpKeys pairs via RM_KNPC_SetUpKeys/AfterChat. When
+	// the window is closed (or the client is vanilla) keep the stock RMShowBox
+	// popup so out-of-conversation bot lines still show.
+	if(%clientId.hasKronosHUD && %clientId.knpcWinOpen != "")
+		remoteEval(%clientId, "KNPCLine", %msg);
+	else
+		remoteEval(%clientId, "SetUpQuest", %msg, "", "", %msg2, $TownBot[%id, PIC]);
 
 }
 

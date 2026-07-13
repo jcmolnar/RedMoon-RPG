@@ -29,7 +29,7 @@ function BotChatStuff(%Client, %closestId, %message, %cropped, %initTalk) {
 		%trigger[2] = "buy";
 		%trigger[3] = "yes";
 		%trigger[4] = "no";
-		remoteEval(%Client, "SetUpKeys", "b buy n no y yes");
+		RM_KNPC_SetUpKeys(%Client, "b buy n no y yes");
 
 		if($state[%Client, %closestId] == "") {
 			if(%initTalk) {
@@ -71,7 +71,7 @@ function BotChatStuff(%Client, %closestId, %message, %cropped, %initTalk) {
 		%trigger[2] = "deposit";
 		%trigger[3] = "withdraw";
 		%trigger[4] = "storage";
-		remoteEval(%Client, "SetUpKeys", "d deposit w withdraw s storage");
+		RM_KNPC_SetUpKeys(%Client, "d deposit w withdraw s storage");
 		if($state[%Client, %closestId] == "") {
 			if(%initTalk) {
 				%p1 = "<f0>I can keep your money from being stolen by thieves. You are carrying <f1>"@$COINS[%Client]@"<f0> gil and I have <f1>"@$BANK[%Client]@"<f0> of yours.";
@@ -147,7 +147,7 @@ function BotChatStuff(%Client, %closestId, %message, %cropped, %initTalk) {
 		%trigger[2] = "yes";
 		%trigger[3] = "no";
 		%trigger[4] = "buy";
-		remoteEval(%Client, "SetUpKeys", "y yes n no b buy");
+		RM_KNPC_SetUpKeys(%Client, "y yes n no b buy");
 		if($state[%Client, %closestId] == "") {
 			if(%initTalk) {
 				if(GetWord($bounty[%Client], 1) == "!Q@W#E$R%T^Y&U*I(O)P") {
@@ -253,7 +253,7 @@ function BotChatStuff(%Client, %closestId, %message, %cropped, %initTalk) {
 		%list = $TownBot[%closestId, CUEKEY, 1];
 		%key1 = getWord(%list, 0)@" yes ";
 		%key2 = getWord(%list, 1)@" no";
-		remoteEval(%Client, "SetUpKeys", %key1@%key2@%buy);
+		RM_KNPC_SetUpKeys(%Client, %key1@%key2@%buy);
 		if(%initTalk || $state[%Client, %closestId] != "") {
 			if($TownBot[%closestId, NQUESTISON, 1] != "") {
 				if($ClientData[%Client, $TownBot[%closestId, NQUESTISON, 1]] == "started")
@@ -319,7 +319,7 @@ function BotChatStuff(%Client, %closestId, %message, %cropped, %initTalk) {
 				%list = $TownBot[%closestId, NCUEKEY, 1];
 				%key1 = getWord(%list, 0)@" yes ";
 				%key2 = getWord(%list, 1)@" no";
-				remoteEval(%Client, "SetUpKeys", %key1@%key2@%buy);    //	remoteEval(%Client, "SetUpKeys", $TownBot[%closestId, NCUEKEY, 1]@%buy);
+				RM_KNPC_SetUpKeys(%Client, %key1@%key2@%buy);    //	remoteEval(%Client, "SetUpKeys", $TownBot[%closestId, NCUEKEY, 1]@%buy);
 				if($state[%Client, %closestId] == "") {
 					if(%initTalk) {
 						AI::sayLater(%Client, %closestId, $TownBot[%closestId, NSAY, 1], $TownBot[%closestId, NCUE, 1]);
@@ -387,7 +387,7 @@ function BotChatStuff(%Client, %closestId, %message, %cropped, %initTalk) {
 		%list = $TownBot[%closestId, CUEKEY, %i, 1];
 		%key1 = getWord(%list, 0)@" yes ";
 		%key2 = getWord(%list, 1)@" no";
-		remoteEval(%Client, "SetUpKeys", %key1@%key2@%buy);
+		RM_KNPC_SetUpKeys(%Client, %key1@%key2@%buy);
 	//	remoteEval(%Client, "SetUpKeys", $TownBot[%closestId, CUEKEY, %i, 1]@" "@$TownBot[%closestId, NCUEKEY, %i, 1]@" b buy");
 		if(%initTalk || $state[%Client, %closestId] != "") {
 			%hasTheStuff = HasThisStuff(%Client, $TownBot[%closestId, NEED, %i]);
@@ -475,7 +475,7 @@ function BotChatStuff(%Client, %closestId, %message, %cropped, %initTalk) {
 		%trigger[2] = "buy";
 		%trigger[3] = "smith";
 		%trigger[4] = "no";
-		remoteEval(%Client, "SetUpKeys", "b buy s smith n no");
+		RM_KNPC_SetUpKeys(%Client, "b buy s smith n no");
 
 		if($state[%Client, %closestId] == "")
 		{
@@ -526,6 +526,10 @@ function BotChatStuff(%Client, %closestId, %message, %cropped, %initTalk) {
 			}
 		}
 	}
+
+	// KronosHUD: push the cached NPC options for this turn (or clear them if the
+	// conversation just ended). Runs for every bot type at the end of BotChatStuff.
+	KronosNPC_RM_AfterChat(%Client, %closestId);
 }
 
 

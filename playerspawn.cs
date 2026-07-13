@@ -108,6 +108,11 @@ function Game::playerSpawn(%Client, %respawn) {
 			$dumbAIflag[%Client.possessId] = "";
 
 			SetOnGround(%Client, 1);
+
+			// KronosHUD handshake trigger. HUD clients answer with KHudOn
+			// (-> remoteKHudOn -> hasKronosHUD). Vanilla clients don't define
+			// remoteKHudPing and harmlessly ignore it. Throttled client-side.
+			remoteEval(%Client, "KHudPing");
 		}
 		return true;
 	}

@@ -1209,6 +1209,11 @@ function remoteSay(%Client, %team, %message) {
 
 				GameBase::setRotation(%closestId, %rot);
 				%r = floor(getRandom()*100); if(%r < 50) GameBase::playSequence(%closestId, 0, "root"); else if(%r < 80) GameBase::playSequence(%closestId, 0, "crouch root"); else GameBase::playSequence(%closestId, 0, "wave"); //"jet");
+
+				// KronosHUD: open the NPC window (HUD clients only; early-returns
+				// otherwise) BEFORE BotChatStuff runs, so the greeting's KNPCLine/
+				// KNPCOpts pushes land in an already-open window.
+				KronosNPC_OpenRM(%Client, %closestId, $TownBot[%closestId, NAME]);
 			}
 
 			BotChatStuff(%Client, %closestId, %message, %cropped, %initTalk);

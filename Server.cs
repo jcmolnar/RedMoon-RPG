@@ -202,6 +202,7 @@ function createServer(%mission, %dedicated) {
 	exec(comchat);
 		exec(comchat2);
 		exec(comchat3);
+		exec(KronosNPC_Server); // KronosHUD NPC-window bridge (vanilla-safe; gated on hasKronosHUD)
 
 		exec(townbots);
 

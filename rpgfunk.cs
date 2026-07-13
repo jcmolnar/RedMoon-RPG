@@ -673,7 +673,7 @@ function SaveWorld() {
 			$world::team[%ii] = GameBase::getTeam(%ID);
 			$world::special[%ii] = "";
 			//modify special depending on the item
-			if(%obj == "Lootbag")
+			if(%obj == "LootBag") // datablock name is "LootBag" (capital B); Tribes == is case-sensitive, so "Lootbag" never matched -> loot contents were dropped
 			{
 				%loot = $loot[%ID];
 				%w1 = getWord(%loot, 0);
@@ -723,7 +723,7 @@ function LoadWorld() {
 			{
 				DeployTree($world::owner[%i], $world::team[%i], $world::pos[%i], $world::rot[%i]);
 			}
-			else if($world::object[%i] == "Lootbag")
+			else if($world::object[%i] == "LootBag") // was "Lootbag"; SaveWorld stores the datablock name "LootBag", and Tribes == is case-sensitive, so loot bags never rehydrated
 			{
 				DeployLootbag($world::owner[%i], $world::pos[%i], $world::rot[%i], $world::special[%i]);
 			}

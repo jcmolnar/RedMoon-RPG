@@ -105,6 +105,7 @@ SoundData bigExplosion1{   wavFileName = "bxplo1.wav";   profile     = Profile3d
 SoundData bigExplosion3{   wavFileName = "bxplo3.wav";   profile     = Profile3dFar;};SoundData bigExplosion4{   wavFileName = "bxplo4.wav";   profile     = Profile3dFar;};
 SoundData explosion3{   wavFileName = "explo3.wav";   profile     = Profile3dFar;};SoundData explosion4{   wavFileName = "explo4.wav";   profile     = Profile3dFar;};
 SoundData ricochet1{   wavFileName = "ricoche1.wav";   profile     = Profile3dNear;};
+SoundData ricochet2{   wavFileName = "ricoche2.wav";   profile     = Profile3dNear;}; // was undefined (only 1 and 3 existed); used by baseExpData.cs ricochet FX. ricoche2.wav ships with ricoche1/3.
 SoundData SoundFireplace{   wavFileName = "fireplace.wav";   profile     = Profile3dNear;};SoundData ricochet3{   wavFileName = "ricoche3.wav";   profile     = Profile3dNear;};
 SoundData energyExplosion{   wavFileName = "energyexp.wav";   profile     = Profile3dMedium;};
 SoundData rocketExplosion{   wavFileName = "rockexp.wav";   profile     = Profile3dLudicrouslyFar;};
@@ -268,6 +269,12 @@ SoundData SoundFishAcquired1 {	wavFileName = "fish1.wav";	profile = Profile3dNea
 SoundData SoundFishAcquired2 {	wavFileName = "fish2.wav";	profile = Profile3dNear;};
 SoundData SoundFishAcquired3 {	wavFileName = "fish3.wav";	profile = Profile3dNear;};
 SoundData fishywalk {	wavFileName = "fishwalk.wav";	profile = Profile3dNear;};
+
+// Enemy footstep sounds referenced by EnemyArmors.cs rFootSounds (darkeye / godeye).
+// Were undefined -> "Sound data block undefined" + silent steps. No darkeyewalk.wav /
+// godeyestepsound.wav ship, so fall back to fishwalk.wav (an existing creature-move sound).
+SoundData darkeyewalk {	wavFileName = "fishwalk.wav";	profile = Profile3dFoot;};
+SoundData godeyestepsound {	wavFileName = "fishwalk.wav";	profile = Profile3dFoot;};
 //GOBLIN SOUNDS
 SoundData SoundGoblinDeath1 {	wavFileName = "GoblinDeath1.wav";	profile = Profile3dNear;};
 SoundData SoundGoblinDeath2 {	wavFileName = "GoblinDeath2.wav";	profile = Profile3dNear;};

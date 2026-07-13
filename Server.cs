@@ -413,6 +413,19 @@ function Server::finishMissionLoad()
    newObject(MissionCleanup, SimGroup);
 
    exec($missionFile);
+
+   // SaveWorld/LoadWorld boundary marker. Created right after the static mission
+   // objects load and before any dynamic objects, so SaveWorld() can enumerate
+   // dropped LootBags by scanning object IDs above it via
+   // nametoid("MissionGroup\\EndOfMap"). RMRPG was missing this entirely
+   // (RPG\scripts\Server.cs creates it here), so SaveWorld aborted with "EndOfMap
+   // not found". Unlike RPG, the instant group here is NOT MissionGroup, so the
+   // object must be parented into it explicitly or nametoid can't resolve it
+   // (verified: without addToSet, nametoid returned -1). Do NOT move or modify
+   // $END_OF_MAP after this point.
+   $END_OF_MAP = newObject("EndOfMap", SimGroup);
+   addToSet("MissionGroup", $END_OF_MAP);
+
    Mission::init();
    if($prevNumTeams != getNumTeams())
    {

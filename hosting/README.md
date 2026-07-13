@@ -11,6 +11,7 @@ setup is recoverable if the install is wiped. Edit the **canonical** copies, not
 |---|---|---|
 | `rmrpg-server.bat` | `C:\Dynamix\Tribes\rmrpg-server.bat` (Tribes root) | Launcher — `NativeTribes.exe -mod rmrpg -dedicated` |
 | `rmrpgserv.cs` | `C:\Dynamix\Tribes\config\rmrpgserv.cs` | Server config, exec'd from `Server.cs` `createServer()` |
+| `RMR.mis` | `C:\Dynamix\Tribes\RMRPG\MISSIONS\RMR.mis` | The RMR mission. Backup only — MISSIONS/ is outside the tracked `scripts/`. Contains the fix repointing the 4 Goblin StaticShapes from ItemData `cgoblin` to StaticShapeData `cgoblin__`. |
 
 ## How it works
 

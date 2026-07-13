@@ -89,8 +89,13 @@ SoundData SoundActivateCommandStation{   wavFileName = "command_activate.wav";  
 SoundData SoundUseCommandStation{   wavFileName = "command_use.wav";   profile = Profile3dNearLoop;};
 //----------------------------------------------------------------------------
 // Item sounds
-//SoundData SoundGeneratorPower{   wavFileName = "generator.wav";   profile = Profile3dNearLoop;};
-//SoundData SoundActivateMotionSensor{   wavFileName = "motion_activate.wav";   profile = Profile3dNear;};SoundData SoundSensorPower{   wavFileName = "pulse_power.wav";   profile = Profile3dNearLoop;};
+// Uncommented: these were behind // so the datablocks were undefined -> "Sound data
+// block undefined" at their sequenceSound reference sites (StaticShape generators,
+// Station.cs, sensor.cs). SoundCommandStationPower was missing entirely; added it.
+SoundData SoundGeneratorPower{   wavFileName = "generator.wav";   profile = Profile3dNearLoop;};
+SoundData SoundActivateMotionSensor{   wavFileName = "motion_activate.wav";   profile = Profile3dNear;};
+SoundData SoundSensorPower{   wavFileName = "pulse_power.wav";   profile = Profile3dNearLoop;};
+SoundData SoundCommandStationPower{   wavFileName = "command_power.wav";   profile = Profile3dNear;};
 //SoundData SoundTeleportPower{   wavFileName = "activateTele.wav";   profile = Profile3dNearLoop;};
 //SoundData SoundBeaconActive{   wavFileName = "activateBeacon.wav";   profile = Profile3dNearLoop;};SoundData SoundBeaconUse{   wavFileName = "teleport2.wav";   profile = Profile3dNear;};
 SoundData SoundPackUse{   wavFileName = "usepack.wav";   profile = Profile3dNear;};SoundData SoundPackFail{   wavFileName = "failpack.wav";   profile = Profile3dNear;};

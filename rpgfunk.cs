@@ -733,7 +733,9 @@ function LoadWorld() {
 	}
 	else
 	{
-		echo("ERROR: Couldn't find world '[SaveWorld_"@$missionName@"].cs'!");
+		// Not an error, just no persisted world yet; the file is written on the first
+		// SaveWorld once dropped loot or a deployable exists to save.
+		echo(">> No saved world yet for this map (created on first save).");
 	}
 }
 function DeployPlatform(%name, %team, %pos, %rot, %plattype) {

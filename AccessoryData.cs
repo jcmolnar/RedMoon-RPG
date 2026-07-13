@@ -1287,11 +1287,27 @@ ItemData cgoblin
 	mapFilter = 1;
 };
 
+// Invisible townbot datablock for hidden quest NPCs (e.g. ChiefCaracal in TownBots.cs).
+// Was missing, so MakeTownBot("invisibleman",...) failed newObject -> $townbot=0 ->
+// "addToSet: Object 0 doesn't exist". shapeFile "invisable" = RMRPG\invisable.dts.
+ItemData invisibleman
+{
+	description = "Invisible Town Bot";
+	className = "TownBot";
+	shapeFile = "invisable";
+
+	disableCollision = true;
+	visibleToSensor = true;
+	mapFilter = 1;
+};
+
 	$CheckFunc[MaleHumanTownBot] = "Loaded";
 	$CheckFuncCnt++;
 	$CheckFunc[FemaleHumanTownBot] = "Loaded";
 	$CheckFuncCnt++;
 	$CheckFunc[cgoblin] = "Loaded";
+	$CheckFuncCnt++;
+	$CheckFunc[invisibleman] = "Loaded";
 	$CheckFuncCnt++;
 	if($CheckFuncCnt >= 200) {
 		echo("Warning to many Model Shapes (MAX 200) Tried to add TownBots!");

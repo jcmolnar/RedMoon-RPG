@@ -52,7 +52,9 @@ function KronosNPC_OpenRM(%client, %botId, %display)
 	%client.knpcWinOpen = true;
 	%client.knpcBot = %botId;
 	%client.knpcTime = %now;
-	%client.knpcPendingOpts = "";
+	// bump the close token so any close scheduled by a previous conversation's
+	// end (KronosNPC_RM_AfterChat) no-ops instead of shutting this new one.
+	%client.knpcCloseTok = %now;
 
 	// KNPCBeginQuiet opens the window WITHOUT the client auto-sending "#say hi"
 	// (RMRPG's greeting is already in flight from the player's own text, so the
@@ -79,42 +81,77 @@ function remoteKNPCClose(%client)
 // --- Options --------------------------------------------------------------
 // Drop-in for comchat3.cs's raw remoteEval(%Client,"SetUpKeys",%trigs). ALWAYS
 // forwards to the real SetUpKeys (keeps vanilla behavior and the keyboard
-// shortcut path alive for HUD clients too). For HUD clients it caches the
-// keyword half of each (key,word) pair; the KNPCOpts push is deferred to
-// KronosNPC_RM_AfterChat so an end-of-conversation turn that still re-sends
-// SetUpKeys doesn't leave stale buttons on screen.
+// shortcut path alive for HUD clients too). For HUD clients it ALSO mirrors the
+// full (key,word) pair list to the window via KNPCKeys, which uses it to turn a
+// clicked option back into the exact word to #say and as a fallback button list.
+// The window's per-turn options themselves come from the spoken prompt's
+// <f1>..<f0> markers (mirrored through KNPCLine), NOT from this full table.
 function RM_KNPC_SetUpKeys(%Client, %trigs)
 {
 	remoteEval(%Client, "SetUpKeys", %trigs);
 	if(!%Client.hasKronosHUD)
 		return;
-	// %trigs = "b buy n no y yes" -> keywords are words 1,3,5,...
-	%opts = "";
-	for(%i = 1; (%kw = GetWord(%trigs, %i)) != -1; %i += 2)
-	{
-		if(%opts == "")
-			%opts = %kw;
-		else
-			%opts = %opts @ " " @ %kw;
-	}
-	%Client.knpcPendingOpts = %opts;
+	remoteEval(%Client, "KNPCKeys", %trigs);
 }
 
-// --- End-of-turn options push --------------------------------------------
-// Called once at the very end of BotChatStuff. If the conversation continues
-// ($state still set) push the cached options; if it ended this turn push an
-// empty list (only the client's auto "Goodbye" row shows).
+// --- End-of-turn close ----------------------------------------------------
+// Called once at the very end of BotChatStuff. When the conversation ended this
+// turn ($state cleared) close the window after a short beat so the final spoken
+// line is readable and any shop/bank/smith hand-off GUI can take the screen. A
+// token guards against a conversation restarted within the delay (its OpenRM /
+// AfterChat resets knpcCloseTok, so this scheduled close no-ops).
 function KronosNPC_RM_AfterChat(%Client, %closestId)
 {
 	if(!%Client.hasKronosHUD)
 		return;
 	if(%Client.knpcWinOpen == "")
 		return;
-	if($state[%Client, %closestId] != "")
-		remoteEval(%Client, "KNPCOpts", %Client.knpcPendingOpts);
+	if($state[%Client, %closestId] == "")
+		KronosNPC_EndRM(%Client);
 	else
-		remoteEval(%Client, "KNPCOpts", "");
-	%Client.knpcPendingOpts = "";
+		// Conversation still waiting on input. If this turn offered no
+		// clickable options it's a FREE-TEXT turn (bank amount) - the client
+		// shows its in-window amount input (ignored when options are up).
+		remoteEval(%Client, "KNPCFree");
+}
+
+// Schedule the window to close because the conversation ended. Shared by
+// KronosNPC_RM_AfterChat (normal end) and comchat3.cs CheckChatState (timeout),
+// which clears $state without going through BotChatStuff.
+function KronosNPC_EndRM(%Client)
+{
+	if(!%Client.hasKronosHUD)
+		return;
+	if(%Client.knpcWinOpen == "")
+		return;
+	%Client.knpcCloseTok = getSimTime();
+	schedule("KronosNPC_CloseRM("@%Client@", "@%Client.knpcCloseTok@");", 4);
+}
+
+// Close the window for a client (server-initiated: conversation ended). The
+// token must still match - a newer conversation bumps knpcCloseTok and wins.
+function KronosNPC_CloseRM(%Client, %tok)
+{
+	if(%tok != "" && %tok != %Client.knpcCloseTok)
+		return;
+	if(%Client.knpcWinOpen == "")
+		return;
+	%Client.knpcWinOpen = "";
+	remoteEval(%Client, "KNPCClose");
+}
+
+// Immediate close - used at shop/bank/smith GUI hand-offs so the dialogue
+// window doesn't linger behind the stock inventory screen until the normal
+// 4s end-of-conversation close fires. Bumps the token so that pending
+// scheduled close no-ops. Self-gates: no-op for vanilla/window-closed.
+function KronosNPC_ForceCloseRM(%Client)
+{
+	if(!%Client.hasKronosHUD)
+		return;
+	if(%Client.knpcWinOpen == "")
+		return;
+	%Client.knpcCloseTok = getSimTime() @ "f";
+	KronosNPC_CloseRM(%Client, %Client.knpcCloseTok);
 }
 
 echo("KronosNPC_Server (RMRPG): NPC dialogue window bridge loaded");

@@ -501,6 +501,12 @@ function BeginCastSpell(%Client, %keyword, %spelltype) { //--1 is casted--0 is s
 		}
 
 		$SpellCastStep[%Client] = 1;
+
+		// KronosHUD: start the cast bar (wind-up = $Spell::delay, full recovery
+		// = delay + recoveryTime). HUD clients only; vanilla-safe.
+		if(%Client.hasKronosHUD)
+			remoteEval(%Client, "KronosCast", $Spell::name[%i], $Spell::delay[%i], $Spell::delay[%i] + $Spell::recoveryTime[%i]);
+
 		if(%Client.adminLevel < 5) {
 			%tempManaCost = floor($Spell::manaCost[%i] / 2);
 			refreshMANA(%Client, %tempManaCost);
@@ -523,6 +529,8 @@ function DoCastSpell(%Client, %index, %oldpos, %castPos, %castObj, %w2, %tempMan
 
 	if(IsDead(%Client)) {
 		$SpellCastStep[%Client] = "";
+		if(%Client.hasKronosHUD)
+			remoteEval(%Client, "KronosCastStop");   // KronosHUD: cast bar interrupt
 		return False;
 	}
 
@@ -531,6 +539,8 @@ function DoCastSpell(%Client, %index, %oldpos, %castPos, %castObj, %w2, %tempMan
 	if(Vector::getDistance(%oldpos, GameBase::getPosition(%Client)) > $SpellMovementGraceDistance) {
 		Client::sendMessage(%Client, $MsgBeige, "You failed to cast the spell.");
 		$SpellCastStep[%Client] = "";
+		if(%Client.hasKronosHUD)
+			remoteEval(%Client, "KronosCastStop");   // KronosHUD: moved - interrupt
 
 		return False;
 	}
@@ -541,6 +551,8 @@ function DoCastSpell(%Client, %index, %oldpos, %castPos, %castObj, %w2, %tempMan
 		if( !(IsInGroupList(%Client, %cl) && IsInGroupList(%cl, %Client)) ) {
 			Client::sendMessage(%Client, $MsgBeige, "You are not part of the target's group.");
 			$SpellCastStep[%Client] = "";
+			if(%Client.hasKronosHUD)
+				remoteEval(%Client, "KronosCastStop");   // KronosHUD: bad target - interrupt
 
 			return False;
 		}
@@ -574,6 +586,10 @@ function DoCastSpell(%Client, %index, %oldpos, %castPos, %castObj, %w2, %tempMan
 		return True;
 	}
 	else {
+		// KronosHUD: spell fizzled (no recovery phase) - kill the cast bar so
+		// it doesn't run a phantom recovery.
+		if(%Client.hasKronosHUD)
+			remoteEval(%Client, "KronosCastStop");
 		SayReadyToCast(%Client);
 		return False;
 	}

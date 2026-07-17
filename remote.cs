@@ -31,6 +31,13 @@ function remoteQuestChat(%Client, %bool) {
 
 function remotePlayMode(%Client) {
 
+	// KronosHUD: keep the shop overlay in sync - the client's CmdHUD "i" key
+	// sends PlayMode to CLOSE (it tracks gui mode locally), so without this
+	// the overlay stayed open and the next press toggled a phantom close
+	// instead of opening (the "press I twice" bug). Same fix as Kronos.
+	if(%Client.kshopOpen != "")
+		KronosShopRM_Close(%Client);
+
 	%Client.currentShop = "";
 	%Client.currentBank = "";
 	%Client.currentLoot = "";
@@ -49,6 +56,18 @@ function remoteCommandMode(%Client) { return; }
 
 function remoteToggleInventoryMode(%Client) {
 
+	// KronosHUD clients: toggle the Kronos inventory overlay instead of the
+	// stock CmdInventory gui mode (vanilla flow below is unchanged)
+	if(%Client.hasKronosHUD) {
+		if(%Client.kshopOpen != "") {
+			KronosShopRM_Close(%Client);
+			remotePlayMode(%Client);
+		}
+		else if(!Observer::isObserver(%Client) && !%Client.guiLock)
+			KronosShopRM_OpenInv(%Client);
+		return;
+	}
+
 	%Client.currentShop = "";
 	%Client.currentBank = "";
 	%Client.currentLoot = "";
@@ -63,6 +82,17 @@ function remoteToggleInventoryMode(%Client) {
 }
 
 function remoteInventoryMode(%Client) {
+	// KronosHUD clients: some configs bind the inventory key here instead of
+	// ToggleInventoryMode - gate both entries (same pattern as Kronos)
+	if(%Client.hasKronosHUD) {
+		if(%Client.kshopOpen != "") {
+			KronosShopRM_Close(%Client);
+			remotePlayMode(%Client);
+		}
+		else if(!Observer::isObserver(%Client) && !%Client.guiLock)
+			KronosShopRM_OpenInv(%Client);
+		return;
+	}
 //	if(!%Client.guiLock && -- client shouldn't be locked in inventory.. for RPG
 	if(!Observer::isObserver(%Client)) {
 		remoteSCOM(%Client, -1);
@@ -96,6 +126,10 @@ function remoteScoresOn(%Client) {
 }
 
 function remoteScoresOff(%Client) {
+	// KronosHUD: the shop/bank overlay borrows the score dialog for its
+	// cursor - the player pressing TAB closes the score screen, so close
+	// the overlay with it (self-gates when not open).
+	KronosShopRM_Close(%Client);
 	Client::cancelMenu(%Client);
 	remotePlayMode(%Client);
 }

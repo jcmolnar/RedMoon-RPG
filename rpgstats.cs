@@ -248,7 +248,13 @@ function processMenuaddAPto(%Client, %stat) {
 	}
 }
 
-function processMenunull(%Client) {}
+// "null" mode = the AP stats VIEWER (MenuAP with 0 points left - its only
+// user). The empty handler left menuMode blank, so remoteMenuSelect closed
+// the whole TAB screen on any click. Rebuild the viewer instead so the menu
+// stays open, matching how the point-spending mode behaves.
+function processMenunull(%Client) {
+	MenuAP(%Client);
+}
 
 function MenuGroup(%Client) {
 
@@ -371,7 +377,14 @@ function GetLevel(%ex) {
 	if(%lvl != "")
 		return %lvl;
 
-	echo("Error: Getlevel(Exp); didn't return a level.");
+	// No table match = the caller passed an entity with no EXP data (enemy
+	// bot ghost, mount object, client mid-join). Every caller routes through
+	// getFinalLVL's Cap(1,999), so empty already meant level 1 - return it
+	// explicitly instead of spamming the console. Diagnostic gated: set
+	// $RMDebug=1 to see the raw exp value that failed to resolve.
+	if($RMDebug)
+		echo("GetLevel: no level for exp [" @ %ex @ "] - defaulting to 1");
+	return 1;
 }
 
 function GetExp(%level) {

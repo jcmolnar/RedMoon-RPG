@@ -1008,7 +1008,12 @@ function GetSmithCombo(%Client, %list) {
 
 			//$Smith::Mod::Stuff[Ring, Fabric] = 100;
 
-			%smith *= floor($Smith::Mod::Stuff[%itemM, $Smith::Stuff[%type]]/100); //getPercentOf()
+			// Scale the material's SMITH bonus by how suitable it is for this shape
+			// (the $Smith::Mod::Stuff percent). The old `*= floor(pct/100)` truncated
+			// EVERY percent below 100 to 0 -> "Invalid Combinations" for all but exact
+			// 100% matches (e.g. Fabric Boots at 75% always failed). getPercentOf does
+			// the intended proportional scale (the original comment named it).
+			%smith = getPercentOf(%smith, $Smith::Mod::Stuff[%itemM, $Smith::Stuff[%type]]);
 
 			if(%smith <= 0) {
 				echo("Invalid Combinations. --"@%partname@" "@%itemM@"-- bonus:"@%smith@" ::"@$Smith::Stuff[%type]@" PERCENT:"@$Smith::Mod::Stuff[%itemM, $Smith::Stuff[%type]]@"% ");

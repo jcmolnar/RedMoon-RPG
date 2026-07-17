@@ -58,10 +58,19 @@ function BuySell(%player, %item, %delta, %buyORsell) {
 //============================================================================================
 function SetupBank(%Client, %id) {
 
+	// KronosHUD: close the NPC dialogue window at the GUI hand-off
+	KronosNPC_ForceCloseRM(%Client);
+
 	%Client.currentShop = "";
 	%Client.currentBank = %id;
 	%Client.currentLoot = "";
 	%Client.currentSmith = "";
+
+	// KronosHUD clients get the Kronos bank overlay (see SetupShop note)
+	if(%Client.hasKronosHUD) {
+		KronosShopRM_OpenBank(%Client, %id);
+		return;
+	}
 
 	%txt = "<f1>GIL: "@FixM($COINS[%Client]);
 	Client::setInventoryText(%Client, %txt);
@@ -86,10 +95,22 @@ function SetupBank(%Client, %id) {
 
 function SetupShop(%Client, %id, %i) {
 
+	// KronosHUD: close the NPC dialogue window at the GUI hand-off
+	KronosNPC_ForceCloseRM(%Client);
+
 	%Client.currentShop = %id;
 	%Client.currentBank = "";
 	%Client.currentLoot = "";
 	%Client.currentSmith = "";
+
+	// KronosHUD clients get the Kronos shop overlay instead of the stock
+	// GuiMode-4 screen. This ALSO catches the refresh calls buyItem/sellItem
+	// make after each transaction (they re-call SetupShop), so the overlay
+	// repopulates instead of the stock GUI popping up. Vanilla falls through.
+	if(%Client.hasKronosHUD) {
+		KronosShopRM_OpenShop(%Client, %id, %i);
+		return;
+	}
 
 	%txt = "<f1>GIL: "@FixM($COINS[%Client]);
 	Client::setInventoryText(%Client, %txt);
@@ -155,6 +176,10 @@ function SetUpLootShop(%Client, %id, %loot) { //LootShop
 }
 
 function SetupBlackSmith(%Client, %id) {
+
+	// KronosHUD: the stock GUI takes over - close the NPC dialogue window now
+	KronosNPC_ForceCloseRM(%Client);
+
 	%Client.currentShop = "";
 	%Client.currentBank = "";
 	%Client.currentLoot = "";

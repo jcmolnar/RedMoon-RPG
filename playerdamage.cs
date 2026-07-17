@@ -836,6 +836,10 @@ if($debug == true) echo("%roll:"@%roll@" | New %value:"@%value);
 							break;
 						}
 					}
+					// KronosHUD: live target-frame update for the attacker with
+					// the hit number (PushTarget self-gates on the handshake).
+					if(%sClient != 0)
+						KronosHUD_PushTarget(%sClient, %dClient, %backupValue);
 				}
 			}
 			if(!Player::isAiControlled(%dClient)) {

@@ -6,6 +6,15 @@ function Client::cancelMenu(%clientId)
       %clientId.menuMode = "";
       %clientId.menuLock = "";
       remoteEval(%clientId, "CancelMenu");
+
+      // KronosHUD: the shop/bank overlay borrows the score dialog for its
+      // cursor - dropping the score screen without closing the overlay
+      // would strand it open with no pointer (same guard as the Kronos
+      // original's cancelMenu). The NPC dialogue window is deliberately
+      // NOT closed here: BotChatStuff calls cancelMenu on every turn.
+      if(%clientId.kshopOpen != "")
+         KronosShopRM_Close(%clientId);
+
       Client::setMenuScoreVis(%clientId, false);
    }
 }

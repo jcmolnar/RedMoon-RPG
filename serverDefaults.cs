@@ -15,7 +15,7 @@ $Server::teamSkin[6] = "min";
 $Server::teamName[7] = "Uber";
 $Server::teamSkin[7] = "fedmonster";
 
-$Server::HostName = "RMRPG MOD Server";
+// $Server::HostName set authoritatively in config\rmrpgserv.cs (overrides this).
 $Server::MaxPlayers = "16";
 $Server::HostPublicGame = true;
 $Server::AutoAssignTeams = true;
@@ -38,8 +38,7 @@ $Server::VoteFailTime = 30; // 30 seconds if your vote fails + $Server::MinVoteT
 $Server::TourneyMode = false;
 $Server::TeamDamageScale = 1;
 
-$Server::Info = "";
-$Server::JoinMOTD = "";
+// $Server::Info / $Server::JoinMOTD set authoritatively in config\rmrpgserv.cs.
 
 $Server::MasterAddressN0 = "t1m1.masters.dynamix.com:28000 t1m2.masters.dynamix.com:28000 t1m3.masters.dynamix.com:28000";
 $Server::MasterAddressN1 = "t1ukm1.masters.dynamix.com:28000 t1ukm2.masters.dynamix.com:28000 t1ukm3.masters.dynamix.com:28000";

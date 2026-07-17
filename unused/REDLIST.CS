@@ -1,12 +1,16 @@
 function remotefetchdata(){}
 
-//Remove the getrandom() from these lines if you want to use them
-$adminpassword[1]="abc"@getrandom();
-$adminpassword[2]="abc"@getrandom();
-$adminpassword[3]="abc"@getrandom();
-$adminpassword[4]="abc"@getrandom();
-$adminpassword[5]="abc"@getrandom();
-$adminpassword[6]="abc"@getrandom();
+// NOTE (var names are case-insensitive: $adminpassword IS $AdminPassword):
+// These "abc"@getrandom() lines ran AFTER config\rmrpgserv.cs and clobbered the
+// real admin passwords with unguessable random values every boot - locking out
+// all password admin (SAD("...")). Disabled so config\rmrpgserv.cs is the single
+// source of truth for $AdminPassword[1..5]. (Original lockout preserved below.)
+//$adminpassword[1]="abc"@getrandom();
+//$adminpassword[2]="abc"@getrandom();
+//$adminpassword[3]="abc"@getrandom();
+//$adminpassword[4]="abc"@getrandom();
+//$adminpassword[5]="abc"@getrandom();
+//$adminpassword[6]="abc"@getrandom();
 
 //$to_char_places=5;//for health read out
 //$max_fights=20;

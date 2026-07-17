@@ -4,7 +4,7 @@ function init_townbots() {
 	echo("Setup TownBots - Start.");
 
 	//Add keywords here
-	$RM::KeyWords = "yes no buy deposit withdraw storage smith";
+	$RM::KeyWords = "yes no buy deposit withdraw storage smith stable";
 
 	$TownBotList = " ";
 
@@ -49,6 +49,13 @@ function init_townbots() {
 	$TownBot[$townbot, TYPE] = "merchant";
 	$TownBot[$townbot, SHOP] = "Clothing Leather_Armor Brass_Armor Raider_Suit Klepto_Outfit Jerkilin Pink_Robe Purple_Robe Copper_Buckler Bandana Leather_Pants Leather_Boots Leather_Gloves Brass_Ring ";
 	$TownBot[$townbot, SayBye] = "See ya.";
+
+
+	MakeTownBot("FemaleHumanTownBot",	"Female001",	"Chocobo Trainer",	"-202.5 43.5 40.0332");
+
+	$TownBot[$townbot, TYPE] = "chocotrainer";
+	$TownBot[$townbot, FOODTIER] = "Shop1";   // this trainer's feed-shop tier (Shop1..Shop6)
+	$TownBot[$townbot, SayBye] = "Kweh! Come back soon!";
 
 
 	MakeTownBot("FemaleHumanTownBot",	"Female002",	"Banker",	"-198.677 46.7033 40.0332");

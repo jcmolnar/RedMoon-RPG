@@ -203,6 +203,9 @@ function createServer(%mission, %dedicated) {
 		exec(comchat2);
 		exec(comchat3);
 		exec(KronosNPC_Server); // KronosHUD NPC-window bridge (vanilla-safe; gated on hasKronosHUD)
+		exec(KronosHUD_Server); // KronosHUD TAB roster + stat push + LOS target scan
+		exec(KronosShop_Server); // KronosHUD shop/bank overlay adapter (HUD clients only)
+		exec(advertisements);   // rotating server ads + RMJoinNotice (rotation restarted post-mission-load)
 
 		exec(townbots);
 
@@ -218,7 +221,9 @@ function createServer(%mission, %dedicated) {
 
 	//export("$EXP*", "temp\\ExpTable.cs");
 
-	$Server::Info = "Download compatible client at: http://tribesrpg.org\nRunning Red Moon RPG ver "@$RMver;
+	// $Server::Info now set once in config\rmrpgserv.cs (exec'd at top of
+	// createServer, with exec(version) for $RMver). Kept there so all server
+	// branding lives in one file.
 
 	Server::storeData();
 
@@ -426,6 +431,12 @@ function Server::finishMissionLoad()
    // $END_OF_MAP after this point.
    $END_OF_MAP = newObject("EndOfMap", SimGroup);
    addToSet("MissionGroup", $END_OF_MAP);
+
+   // Advertisements rotation: mission load FLUSHES pending schedules, so the
+   // exec-time start from createServer never survives to here. Re-exec the
+   // file a beat after load - its hot-reload branch restarts the rotation.
+   // (Same pattern as Kronos, which re-execs it from Server::Countdown.)
+   schedule("exec(advertisements);", 30);
 
    Mission::init();
    if($prevNumTeams != getNumTeams())

@@ -52,7 +52,7 @@ function Chocobo::Get(%Client, %opt, %name, %color, %sex, %YAge, %DAge, %TempAge
 		if(%opt == found)
 			%opt = find;
 		if(%opt == quest)
-			Client::sendMessage(%Client, 1, $put_name_here@" tells you, Sorry. You have to many Chocobos! ("@$Chocobo[%Client]@") Came back if you released one.");
+			Client::sendMessage(%Client, 1, "The Chocobo trainer tells you, Sorry. You have too many Chocobos! ("@$Chocobo[%Client]@") Come back if you release one.");
 		else
 			Client::sendMessage(%Client, 0, "You have to many Chocobos! ("@$Chocobo[%Client]@") Release one if you want to "@%opt@" new ones!");
 		return;
@@ -65,7 +65,9 @@ function Chocobo::Get(%Client, %opt, %name, %color, %sex, %YAge, %DAge, %TempAge
 		Client::sendMessage(%Client, 2, %name@" tells you, Kweh! Now that you caught me you better take good care of me!");
 	}
 	else if(%opt == quest)
-		Client::sendMessage(%Client, 0, $put_name_here@" gave you a "@%color@" Chocobo!");
+		Client::sendMessage(%Client, 0, "The Chocobo trainer gave you a "@%color@" Chocobo!");
+	else if(%opt == bred)
+		Client::sendMessage(%Client, 0, "Kweh kweh! A baby "@%color@" Chocobo hatched into your stable!");
 
 	Chocobo::Add(%Client, %opt, %SaveSlot, %name, %color, %sex, %YAge, %DAge, %TempAge, %STR, %DEX, %CON, %INT, %WIS, %EXP, %Health, %Hungry, %Worth, %Meats, %Fruits, %Vits, %Seeds, %Candies);
 }
@@ -157,158 +159,112 @@ function Chocobo::Breed(%ClientHost, %ClientBuyer, %opt) {
 	$MenuBreedHostId[%ClientBuyer] = %ClientHost;
 
 	if(%opt == "Breed") {
+		// pre-validate before bothering the partner (ChocoboTrainer.cs)
+		%why = Chocobo::BreedCheck(%ClientHost, $MenuBreedChocoboId::Host[%ClientHost], %ClientBuyer, $MenuBreedChocoboId::Buyer[%ClientHost]);
+		if(%why != "") {
+			Client::sendMessage(%ClientHost, 1, %why);
+			return;
+		}
 		$IsTradeing[%ClientHost] = true;
 		$IsTradeing[%ClientBuyer] = true;
+		$CanBreed[%ClientBuyer] = false;  // buyer must confirm
+		$CanBreed[%ClientHost] = true;    // host may cancel
+		Client::sendMessage(%ClientBuyer, 0, %Hostname@" wants to breed his "@$ChocoboName[%ClientHost, $MenuBreedChocoboId::Host[%ClientHost]]@" with your "@$ChocoboName[%ClientBuyer, $MenuBreedChocoboId::Buyer[%ClientHost]]@"! (The chick goes to "@%Hostname@".)");
+		Client::sendMessage(%ClientBuyer, 0, "Type '#breed yes' to accept! Or '#breed no' to refuse.");
+		Client::sendMessage(%ClientHost, 0, "Waiting for "@%Buyername@" to accept... (they type #breed yes)");
 	}
 	else if(%opt == "Breeding") {
-
+		Chocobo::BreedBirth(%ClientHost, %ClientBuyer);
+		Chocobo::BreedClearState(%ClientHost, %ClientBuyer);
 	}
 	else if(%opt == "failedbuyer") {
 		Client::sendMessage(%ClientBuyer, 1, "You canceled!");
 		Client::sendMessage(%ClientHost, 1, %Buyername@" canceled!");
-
-
-		$IsTradeing[%ClientHost] = "";
-		$IsTradeing[%ClientBuyer] = "";
+		Chocobo::BreedClearState(%ClientHost, %ClientBuyer);
 	}
-	else if(%opt == "failhost") {
+	else if(%opt == "failedhost") {
 		Client::sendMessage(%ClientHost, 1, "You canceled!");
 		Client::sendMessage(%ClientBuyer, 1, %Hostname@" canceled!");
-
-
-		$IsTradeing[%ClientHost] = "";
-		$IsTradeing[%ClientBuyer] = "";
+		Chocobo::BreedClearState(%ClientHost, %ClientBuyer);
 	}
 }
 
+function Chocobo::BreedClearState(%ClientHost, %ClientBuyer) {
+	$IsTradeing[%ClientHost] = "";
+	$IsTradeing[%ClientBuyer] = "";
+	$CanBreed[%ClientHost] = "";
+	$CanBreed[%ClientBuyer] = "";
+	$MenuBreedBuyerId[%ClientHost] = "";
+	$MenuBreedHostId[%ClientBuyer] = "";
+	$MenuBreedChocoboId::Host[%ClientHost] = "";
+	$MenuBreedChocoboId::Buyer[%ClientHost] = "";
+}
+
 function Chocobo::Switch(%Client, %ClientBuyer, %Choco, %BuyerChoco, %opt) {
+	// Rewritten 2026-07-17: a TRADE is a swap - neither side's bird count
+	// changes, so no free slot is needed. The old version freed-then-refilled
+	// slots and, when both stables were full, fell into a corrupt overflow
+	// path (hardcoded slot 20 outside $MaxChocobo, stale indices). Explicit
+	// in-place swap of all 21 per-bird fields.
+	%t = $ChocoboName[%Client, %Choco]; $ChocoboName[%Client, %Choco] = $ChocoboName[%ClientBuyer, %BuyerChoco]; $ChocoboName[%ClientBuyer, %BuyerChoco] = %t;
+	%t = $ChocoboColor[%Client, %Choco]; $ChocoboColor[%Client, %Choco] = $ChocoboColor[%ClientBuyer, %BuyerChoco]; $ChocoboColor[%ClientBuyer, %BuyerChoco] = %t;
+	%t = $ChocoboSex[%Client, %Choco]; $ChocoboSex[%Client, %Choco] = $ChocoboSex[%ClientBuyer, %BuyerChoco]; $ChocoboSex[%ClientBuyer, %BuyerChoco] = %t;
+	%t = $ChocoboYAge[%Client, %Choco]; $ChocoboYAge[%Client, %Choco] = $ChocoboYAge[%ClientBuyer, %BuyerChoco]; $ChocoboYAge[%ClientBuyer, %BuyerChoco] = %t;
+	%t = $ChocoboDAge[%Client, %Choco]; $ChocoboDAge[%Client, %Choco] = $ChocoboDAge[%ClientBuyer, %BuyerChoco]; $ChocoboDAge[%ClientBuyer, %BuyerChoco] = %t;
+	%t = $ChocoboTempAge[%Client, %Choco]; $ChocoboTempAge[%Client, %Choco] = $ChocoboTempAge[%ClientBuyer, %BuyerChoco]; $ChocoboTempAge[%ClientBuyer, %BuyerChoco] = %t;
+	%t = $ChocoboSTR[%Client, %Choco]; $ChocoboSTR[%Client, %Choco] = $ChocoboSTR[%ClientBuyer, %BuyerChoco]; $ChocoboSTR[%ClientBuyer, %BuyerChoco] = %t;
+	%t = $ChocoboDEX[%Client, %Choco]; $ChocoboDEX[%Client, %Choco] = $ChocoboDEX[%ClientBuyer, %BuyerChoco]; $ChocoboDEX[%ClientBuyer, %BuyerChoco] = %t;
+	%t = $ChocoboCON[%Client, %Choco]; $ChocoboCON[%Client, %Choco] = $ChocoboCON[%ClientBuyer, %BuyerChoco]; $ChocoboCON[%ClientBuyer, %BuyerChoco] = %t;
+	%t = $ChocoboINT[%Client, %Choco]; $ChocoboINT[%Client, %Choco] = $ChocoboINT[%ClientBuyer, %BuyerChoco]; $ChocoboINT[%ClientBuyer, %BuyerChoco] = %t;
+	%t = $ChocoboWIS[%Client, %Choco]; $ChocoboWIS[%Client, %Choco] = $ChocoboWIS[%ClientBuyer, %BuyerChoco]; $ChocoboWIS[%ClientBuyer, %BuyerChoco] = %t;
+	%t = $ChocoboEXP[%Client, %Choco]; $ChocoboEXP[%Client, %Choco] = $ChocoboEXP[%ClientBuyer, %BuyerChoco]; $ChocoboEXP[%ClientBuyer, %BuyerChoco] = %t;
+	%t = $ChocoboHealth[%Client, %Choco]; $ChocoboHealth[%Client, %Choco] = $ChocoboHealth[%ClientBuyer, %BuyerChoco]; $ChocoboHealth[%ClientBuyer, %BuyerChoco] = %t;
+	%t = $ChocoboHungry[%Client, %Choco]; $ChocoboHungry[%Client, %Choco] = $ChocoboHungry[%ClientBuyer, %BuyerChoco]; $ChocoboHungry[%ClientBuyer, %BuyerChoco] = %t;
+	%t = $ChocoboWorth[%Client, %Choco]; $ChocoboWorth[%Client, %Choco] = $ChocoboWorth[%ClientBuyer, %BuyerChoco]; $ChocoboWorth[%ClientBuyer, %BuyerChoco] = %t;
+	%t = $ChocoboMeats[%Client, %Choco]; $ChocoboMeats[%Client, %Choco] = $ChocoboMeats[%ClientBuyer, %BuyerChoco]; $ChocoboMeats[%ClientBuyer, %BuyerChoco] = %t;
+	%t = $ChocoboFruits[%Client, %Choco]; $ChocoboFruits[%Client, %Choco] = $ChocoboFruits[%ClientBuyer, %BuyerChoco]; $ChocoboFruits[%ClientBuyer, %BuyerChoco] = %t;
+	%t = $ChocoboVits[%Client, %Choco]; $ChocoboVits[%Client, %Choco] = $ChocoboVits[%ClientBuyer, %BuyerChoco]; $ChocoboVits[%ClientBuyer, %BuyerChoco] = %t;
+	%t = $ChocoboSeeds[%Client, %Choco]; $ChocoboSeeds[%Client, %Choco] = $ChocoboSeeds[%ClientBuyer, %BuyerChoco]; $ChocoboSeeds[%ClientBuyer, %BuyerChoco] = %t;
+	%t = $ChocoboCandies[%Client, %Choco]; $ChocoboCandies[%Client, %Choco] = $ChocoboCandies[%ClientBuyer, %BuyerChoco]; $ChocoboCandies[%ClientBuyer, %BuyerChoco] = %t;
+	%t = $ChocoboTakeCare[%Client, %Choco]; $ChocoboTakeCare[%Client, %Choco] = $ChocoboTakeCare[%ClientBuyer, %BuyerChoco]; $ChocoboTakeCare[%ClientBuyer, %BuyerChoco] = %t;
+}
 
-			Client::sendMessage(%Client, 0, "Trying to 'Switch'  Chocobos..");
-	if(%opt != HostSaved) {
-		%i = Chocobo::GetSaveSlot(%Client);
-		if(%i != "") {
-			$Chocobo[%Client, %i] = true;
-			$ChocoboTakeCare[%Client, %i] = "false";
-			$ChocoboName[%Client, %i] = $ChocoboName[%ClientBuyer, %BuyerChoco];
-			$ChocoboColor[%Client, %i] = $ChocoboColor[%ClientBuyer, %BuyerChoco];
-			$ChocoboSex[%Client, %i] = $ChocoboSex[%ClientBuyer, %BuyerChoco];
-			$ChocoboYAge[%Client, %i] = $ChocoboYAge[%ClientBuyer, %BuyerChoco];
-			$ChocoboDAge[%Client, %i] = $ChocoboDAge[%ClientBuyer, %BuyerChoco];
-			$ChocoboTempAge[%Client, %i] = $ChocoboTempAge[%ClientBuyer, %BuyerChoco];
-			$ChocoboSTR[%Client, %i] = $ChocoboSTR[%ClientBuyer, %BuyerChoco];
-			$ChocoboDEX[%Client, %i] = $ChocoboDEX[%ClientBuyer, %BuyerChoco];
-			$ChocoboCON[%Client, %i] = $ChocoboCON[%ClientBuyer, %BuyerChoco];
-			$ChocoboINT[%Client, %i] = $ChocoboINT[%ClientBuyer, %BuyerChoco];
-			$ChocoboWIS[%Client, %i] = $ChocoboWIS[%ClientBuyer, %BuyerChoco];
-			$ChocoboEXP[%Client, %i] = $ChocoboEXP[%ClientBuyer, %BuyerChoco];
-			$ChocoboHealth[%Client, %i] = $ChocoboHealth[%ClientBuyer, %BuyerChoco];
-			$ChocoboHungry[%Client, %i] = $ChocoboHungry[%ClientBuyer, %BuyerChoco];
-			$ChocoboWorth[%Client, %i] = $ChocoboWorth[%ClientBuyer, %BuyerChoco];
-			$ChocoboMeats[%Client, %i] = $ChocoboMeats[%ClientBuyer, %BuyerChoco];
-			$ChocoboFruits[%Client, %i] = $ChocoboFruits[%ClientBuyer, %BuyerChoco];
-			$ChocoboVits[%Client, %i] = $ChocoboVits[%ClientBuyer, %BuyerChoco];
-			$ChocoboSeeds[%Client, %i] = $ChocoboSeeds[%ClientBuyer, %BuyerChoco];
-			$ChocoboCandies[%Client, %i] = $ChocoboCandies[%ClientBuyer, %BuyerChoco];
-			Chocobo::Clear(%ClientBuyer, %BuyerChoco);
-			%NoRoomHost = false;
-		}
-		else
-			%NoRoomHost = true;
+// One-way transfer (player-to-player SALE): the bird moves %from -> %to.
+// Returns false (with messages) if the buyer has no free stable slot.
+function Chocobo::GiveBird(%from, %to, %choco) {
+	if($Chocobo[%to] >= $MaxChocobo) {
+		Client::sendMessage(%to, 1, "Your stable is full! ("@$Chocobo[%to]@"/"@$MaxChocobo@")");
+		Client::sendMessage(%from, 1, Client::getName(%to)@"'s stable is full - sale canceled.");
+		return false;
 	}
-	if(%opt != BuyerSaved) {
-		%i = Chocobo::GetSaveSlot(%ClientBuyer);
-		if(%i != "") {
-			%BuyerChocobo = %i;
-			$ChocoboTakeCare[%ClientBuyer, %BuyerChocobo] = "false";
-			$Chocobo[%ClientBuyer, %BuyerChocobo] = true;
-			$ChocoboName[%ClientBuyer, %BuyerChocobo] = $ChocoboName[%Client, %Choco];
-			$ChocoboColor[%ClientBuyer, %BuyerChocobo] = $ChocoboColor[%Client, %Choco];
-			$ChocoboSex[%ClientBuyer, %BuyerChocobo] = $ChocoboSex[%Client, %Choco];
-			$ChocoboYAge[%ClientBuyer, %BuyerChocobo] = $ChocoboYAge[%Client, %Choco];
-			$ChocoboDAge[%ClientBuyer, %BuyerChocobo] = $ChocoboDAge[%Client, %Choco];
-			$ChocoboTempAge[%ClientBuyer, %BuyerChocobo] = $ChocoboTempAge[%Client, %Choco];
-			$ChocoboSTR[%ClientBuyer, %BuyerChocobo] = $ChocoboSTR[%Client, %Choco];
-			$ChocoboDEX[%ClientBuyer, %BuyerChocobo] = $ChocoboDEX[%Client, %Choco];
-			$ChocoboCON[%ClientBuyer, %BuyerChocobo] = $ChocoboCON[%Client, %Choco];
-			$ChocoboINT[%ClientBuyer, %BuyerChocobo] = $ChocoboINT[%Client, %Choco];
-			$ChocoboWIS[%ClientBuyer, %BuyerChocobo] = $ChocoboWIS[%Client, %Choco];
-			$ChocoboEXP[%ClientBuyer, %BuyerChocobo] = $ChocoboEXP[%Client, %Choco];
-			$ChocoboHealth[%ClientBuyer, %BuyerChocobo] = $ChocoboHealth[%Client, %Choco];
-			$ChocoboHungry[%ClientBuyer, %BuyerChocobo] = $ChocoboHungry[%Client, %Choco];
-			$ChocoboWorth[%ClientBuyer, %BuyerChocobo] = $ChocoboWorth[%Client, %Choco];
-			$ChocoboMeats[%ClientBuyer, %BuyerChocobo] = $ChocoboMeats[%Client, %Choco];
-			$ChocoboFruits[%ClientBuyer, %BuyerChocobo] = $ChocoboFruits[%Client, %Choco];
-			$ChocoboVits[%ClientBuyer, %BuyerChocobo] = $ChocoboVits[%Client, %Choco];
-			$ChocoboSeeds[%ClientBuyer, %BuyerChocobo] = $ChocoboSeeds[%Client, %Choco];
-			$ChocoboCandies[%ClientBuyer, %BuyerChocobo] = $ChocoboCandies[%Client, %Choco];
-			Chocobo::Clear(%Client, %Choco);
-			%NoRoomBuyer = false;
-		}
-		else
-			%NoRoomBuyer = true;
-	}
-
-	if(%NoRoomHost == true && %NoRoomBuyer == false)
-		Chocobo::Switch(%Client, %ClientBuyer, %Choco, %BuyerChoco, BuyerSaved);
-	if(%NoRoomHost == false && %NoRoomBuyer == true)
-		Chocobo::Switch(%Client, %ClientBuyer, %Choco, %BuyerChoco, HostSaved);
-	if(%NoRoomHost == true && %NoRoomBuyer == true) {
-		$tmpChoco[%Client] = 20;
-		%i = $tmpChoco[%Client];
-		$HastempChoco[%Client] = true;
-		$Chocobo[%Client, %i] = true;
-		$ChocoboTakeCare[%Client, %i] = "false";
-		$ChocoboName[%Client, %i] = $ChocoboName[%ClientBuyer, %BuyerChoco];
-		$ChocoboColor[%Client, %i] = $ChocoboColor[%ClientBuyer, %BuyerChoco];
-		$ChocoboSex[%Client, %i] = $ChocoboSex[%ClientBuyer, %BuyerChoco];
-		$ChocoboYAge[%Client, %i] = $ChocoboYAge[%ClientBuyer, %BuyerChoco];
-		$ChocoboDAge[%Client, %i] = $ChocoboDAge[%ClientBuyer, %BuyerChoco];
-		$ChocoboTempAge[%Client, %i] = $ChocoboTempAge[%ClientBuyer, %BuyerChoco];
-		$ChocoboSTR[%Client, %i] = $ChocoboSTR[%ClientBuyer, %BuyerChoco];
-		$ChocoboDEX[%Client, %i] = $ChocoboDEX[%ClientBuyer, %BuyerChoco];
-		$ChocoboCON[%Client, %i] = $ChocoboCON[%ClientBuyer, %BuyerChoco];
-		$ChocoboINT[%Client, %i] = $ChocoboINT[%ClientBuyer, %BuyerChoco];
-		$ChocoboWIS[%Client, %i] = $ChocoboWIS[%ClientBuyer, %BuyerChoco];
-		$ChocoboEXP[%Client, %i] = $ChocoboEXP[%ClientBuyer, %BuyerChoco];
-		$ChocoboHealth[%Client, %i] = $ChocoboHealth[%ClientBuyer, %BuyerChoco];
-		$ChocoboHungry[%Client, %i] = $ChocoboHungry[%ClientBuyer, %BuyerChoco];
-		$ChocoboWorth[%Client, %i] = $ChocoboWorth[%ClientBuyer, %BuyerChoco];
-		$ChocoboMeats[%Client, %i] = $ChocoboMeats[%ClientBuyer, %BuyerChoco];
-		$ChocoboFruits[%Client, %i] = $ChocoboFruits[%ClientBuyer, %BuyerChoco];
-		$ChocoboVits[%Client, %i] = $ChocoboVits[%ClientBuyer, %BuyerChoco];
-		$ChocoboSeeds[%Client, %i] = $ChocoboSeeds[%ClientBuyer, %BuyerChoco];
-		$ChocoboCandies[%Client, %i] = $ChocoboCandies[%ClientBuyer, %BuyerChoco];
-		Chocobo::Clear(%ClientBuyer, %BuyerChoco);
-		Chocobo::Switch(%Client, %ClientBuyer, %Choco, %BuyerChoco, HostSaved);
-	}
-	if($HastempChoco[%Client] == true) {
-		%BuyerChoco = $tmpChoco[%Client];
-		$HastempChoco[%Client] = true;
-		$Chocobo[%Client, %i] = true;
-		$ChocoboTakeCare[%Client, %i] = "false";
-		$ChocoboName[%Client, %i] = $ChocoboName[%Client, %BuyerChoco];
-		$ChocoboColor[%Client, %i] = $ChocoboColor[%Client, %BuyerChoco];
-		$ChocoboSex[%Client, %i] = $ChocoboSex[%Client, %BuyerChoco];
-		$ChocoboYAge[%Client, %i] = $ChocoboYAge[%Client, %BuyerChoco];
-		$ChocoboDAge[%Client, %i] = $ChocoboDAge[%Client, %BuyerChoco];
-		$ChocoboTempAge[%Client, %i] = $ChocoboTempAge[%Client, %BuyerChoco];
-		$ChocoboSTR[%Client, %i] = $ChocoboSTR[%Client, %BuyerChoco];
-		$ChocoboDEX[%Client, %i] = $ChocoboDEX[%Client, %BuyerChoco];
-		$ChocoboCON[%Client, %i] = $ChocoboCON[%Client, %BuyerChoco];
-		$ChocoboINT[%Client, %i] = $ChocoboINT[%Client, %BuyerChoco];
-		$ChocoboWIS[%Client, %i] = $ChocoboWIS[%Client, %BuyerChoco];
-		$ChocoboEXP[%Client, %i] = $ChocoboEXP[%Client, %BuyerChoco];
-		$ChocoboHealth[%Client, %i] = $ChocoboHealth[%Client, %BuyerChoco];
-		$ChocoboHungry[%Client, %i] = $ChocoboHungry[%Client, %BuyerChoco];
-		$ChocoboWorth[%Client, %i] = $ChocoboWorth[%Client, %BuyerChoco];
-		$ChocoboMeats[%Client, %i] = $ChocoboMeats[%Client, %BuyerChoco];
-		$ChocoboFruits[%Client, %i] = $ChocoboFruits[%Client, %BuyerChoco];
-		$ChocoboVits[%Client, %i] = $ChocoboVits[%Client, %BuyerChoco];
-		$ChocoboSeeds[%Client, %i] = $ChocoboSeeds[%Client, %BuyerChoco];
-		$ChocoboCandies[%Client, %i] = $ChocoboCandies[%Client, %BuyerChoco];
-		Chocobo::Clear(%Client, %BuyerChoco);
-		$HastempChoco[%Client] = "";
-	}
+	if($Chocobo[%to] == "")
+		$Chocobo[%to] = 0;
+	$Chocobo[%to]++;
+	%i = Chocobo::GetSaveSlot(%to);
+	$Chocobo[%to, %i] = true;
+	$ChocoboTakeCare[%to, %i] = "false";
+	$ChocoboName[%to, %i] = $ChocoboName[%from, %choco];
+	$ChocoboColor[%to, %i] = $ChocoboColor[%from, %choco];
+	$ChocoboSex[%to, %i] = $ChocoboSex[%from, %choco];
+	$ChocoboYAge[%to, %i] = $ChocoboYAge[%from, %choco];
+	$ChocoboDAge[%to, %i] = $ChocoboDAge[%from, %choco];
+	$ChocoboTempAge[%to, %i] = $ChocoboTempAge[%from, %choco];
+	$ChocoboSTR[%to, %i] = $ChocoboSTR[%from, %choco];
+	$ChocoboDEX[%to, %i] = $ChocoboDEX[%from, %choco];
+	$ChocoboCON[%to, %i] = $ChocoboCON[%from, %choco];
+	$ChocoboINT[%to, %i] = $ChocoboINT[%from, %choco];
+	$ChocoboWIS[%to, %i] = $ChocoboWIS[%from, %choco];
+	$ChocoboEXP[%to, %i] = $ChocoboEXP[%from, %choco];
+	$ChocoboHealth[%to, %i] = $ChocoboHealth[%from, %choco];
+	$ChocoboHungry[%to, %i] = $ChocoboHungry[%from, %choco];
+	$ChocoboWorth[%to, %i] = $ChocoboWorth[%from, %choco];
+	$ChocoboMeats[%to, %i] = $ChocoboMeats[%from, %choco];
+	$ChocoboFruits[%to, %i] = $ChocoboFruits[%from, %choco];
+	$ChocoboVits[%to, %i] = $ChocoboVits[%from, %choco];
+	$ChocoboSeeds[%to, %i] = $ChocoboSeeds[%from, %choco];
+	$ChocoboCandies[%to, %i] = $ChocoboCandies[%from, %choco];
+	Chocobo::Clear(%from, %choco);
+	return true;
 }
 
 function Chocobo::NewName(%Client, %opt, %Choco) {
@@ -406,11 +362,12 @@ function Chocobo::Clear(%Client, %Choco) {
 
 	%name = Client::getName(%Client);
 
-	Client::sendMessage(%Client, 1, "Clearing "@$ChocoboName[%Client, $Chocobo[%Client, %Choco]]@" Num: "@%Choco); //For testing
+	if($RMDebug)
+		Client::sendMessage(%Client, 1, "Clearing "@$ChocoboName[%Client, %Choco]@" Num: "@%Choco);
 
 	$Chocobo[%Client]--;
-	$funk::var["[\""@%name@"\", 5, 1, 10, 11]"] = $Chocobo[%Client];
-	$funk::var["[\""@%name@"\", 5, "@%Choco@", 10, 21]"] = "";
+	if($Chocobo[%Client] < 0)
+		$Chocobo[%Client] = 0;
 	$Chocobo[%Client, %Choco] = "false";
 	$ChocoboTakeCare[%Client, %Choco] = "";
 	$ChocoboName[%Client, %Choco] = "Free save slot";
@@ -459,7 +416,8 @@ function Chocobo::Food(%Client, %name, %lvltype, %STR, %DEX, %CON, %INT, %WIS, %
 function Chocobo::Sim(%Client, %Choco, %opt, %lvltype) { //Called every 5 mins or when you feed your Chocobo
 
 	%name = Client::getname(%Client);
-echo("Sim called ["@%Client@"]: %choco: "@%Choco@" | %opt = "@%opt@" | %lvltype = "@%lvltype);
+	if($RMDebug)
+		echo("Sim called ["@%Client@"]: %choco: "@%Choco@" | %opt = "@%opt@" | %lvltype = "@%lvltype);
 	if($Chocobo[%Client, %Choco] == false || $Chocobo[%Client, %Choco] != true)
 		return;
 
@@ -558,6 +516,11 @@ echo("Sim called ["@%Client@"]: %choco: "@%Choco@" | %opt = "@%opt@" | %lvltype 
 	}
 	if($ChocoboWorth[%Client, %Choco] < 0)
 		$ChocoboWorth[%Client, %Choco] = 0;
+	// Worth cap (2026-07-17): the Take tick adds worth every 5 min forever, so
+	// a parked well-fed bird was an unbounded money printer via the sell menu.
+	%wcap = ($ChocoboSTR[%Client, %Choco] + $ChocoboDEX[%Client, %Choco] + $ChocoboCON[%Client, %Choco] + $ChocoboINT[%Client, %Choco] + $ChocoboWIS[%Client, %Choco]) * 75 + 5000;
+	if($ChocoboWorth[%Client, %Choco] > %wcap)
+		$ChocoboWorth[%Client, %Choco] = %wcap;
 }
 
 // (Removed leftover "TEMP" Cap()/round() redefinitions. They loaded AFTER
@@ -639,6 +602,18 @@ function Chocobo::FoodType(%Client, %type, %lvltype, %Choco, %coins, %name) {
 	processMenuChocoboViewInfo(%Client, Feed);
 }
 
+
+// Trainer-proximity gate. $CanFeed is set by Chocobo::Talk (trainer NPC) and
+// wiped on restart; admins (>=3) bypass so the system is testable before a
+// trainer bot exists.
+function Chocobo::CanUse(%Client) {
+	if($CanFeed[%Client] == true)
+		return true;
+	if(%Client.adminLevel >= 3)
+		return true;
+	return false;
+}
+
 function Chocobo::Timer(%Client, %Choco) { // Gets called in RecursiveWorld
 	$ChocoboTempAge[%Client, %Choco]++;
 	if($ChocoboTempAge[%Client, %Choco] == 5 || $ChocoboTempAge[%Client, %Choco] == 10 || $ChocoboTempAge[%Client, %Choco] == 15)
@@ -658,7 +633,7 @@ function MenuChocobo(%Client) {	//==============================================
 
 	Client::buildMenu(%Client, "Select a Chocobo\n"@$Chocobover, "PickedChocobo", true);
 
-	%curItem = 0;
+	%curItem = 1;
 	for(%i = 1; $Chocobo[%Client, %i] != ""; %i++) {
 		Client::addMenuItem(%Client, %curItem++ @ $ChocoboName[%Client, %i], %i);
 		if(%curItem == 8)
@@ -715,7 +690,7 @@ function processMenuChocoboViewInfo(%Client, %opt) {
 		return;
 	}
 	else if(%opt == "Feed") {
-		if($CanFeed[%Client] == true) {
+		if(Chocobo::CanUse(%Client)) {
 			Client::buildMenu(%Client, "What will you feed your Chocobo?", "Feeding", true);
 
 			if($Feeding[%Client] == Shop1) { //Changes these if you wanna Chee
@@ -739,7 +714,7 @@ function processMenuChocoboViewInfo(%Client, %opt) {
 				Client::addMenuItem(%Client, "5Jam - 10000 gil", "Jam|Candies");
 				Client::addMenuItem(%Client, "x<<Back", "Back");
 			}
-			else if($Feeding[%Client] == shop3) {
+			else if($Feeding[%Client] == Shop3) {
 				$Chocobo::tmpFoodCost[%Client] = 20000;
 				$Chocobo::tmpFoodlvl[%Client] = 3;
 				Client::addMenuItem(%Client, "1Banana  - 20000 gil", "Banana|Fruits");
@@ -782,7 +757,7 @@ function processMenuChocoboViewInfo(%Client, %opt) {
 		return;
 	}
 	else if(%opt == "Play") {
-		if($CanFeed[%Client] == true) {
+		if(Chocobo::CanUse(%Client)) {
 			Client::sendMessage(%Client, 0, "You hop on your "@$ChocoboColor[%Client, $MenuChoco[%Client]]@" Chocobo "@$ChocoboName[%Client, $MenuChoco[%Client]]@".");
 			%pos = GameBase::getposition(%Client);
 			Chocobo::Spawn(%Client, $MenuChoco[%Client], %pos);
@@ -794,7 +769,7 @@ function processMenuChocoboViewInfo(%Client, %opt) {
 		return;
 	}
 	else if(%opt == "Return") {
-		if($CanFeed[%Client] == true) {
+		if(Chocobo::CanUse(%Client)) {
 			Client::setControlObject(%Client, %Client);
 			Chocobo::Delete(%Client);
 			MenuChocobo(%Client);
@@ -806,7 +781,7 @@ function processMenuChocoboViewInfo(%Client, %opt) {
 		return;
 	}
 	else if(%opt == "Breed") {
-		if($CanFeed[%Client] == true) {
+		if(Chocobo::CanUse(%Client)) {
 			MenuBreeding(%Client);
 			return;	//===
 		}
@@ -818,7 +793,7 @@ function processMenuChocoboViewInfo(%Client, %opt) {
 		return;
 	}
 	else if(%opt == "Sell") {
-		if($CanFeed[%Client] == true) {
+		if(Chocobo::CanUse(%Client)) {
 			Client::buildMenu(%Client, "Worth: $"@FixM($ChocoboWorth[%Client, $MenuChoco[%Client]]), "Selling", true);
 			Client::addMenuItem(%Client, "1Sell", 1);
 			Client::addMenuItem(%Client, "9Don't sell", 9);
@@ -1146,13 +1121,15 @@ function processMenuFeeding(%Client, %opt) {
 
 function Chocobo::Talk(%Client, %choco, %opt) {
 
-	$CanFeed[%Client] = true;
-	Schedule::add("Chocobo::Talk(%Client, %Choco, Clear);", 30, "ChocoTalk"@%Client);
-	//Schedule::Cancel("ChocoTalk"@%Client);
-	//Call this everytime you talk to a Trainer
-
-	if(%opt == Clear)
+	// Fixed 2026-07-17: the old schedule baked the literal "%Client" into the
+	// string (empty at fire time), so the 30s expiry cleared $CanFeed[""] and
+	// the flag lasted until restart; it also re-set the flag on the Clear call.
+	if(%opt == Clear) {
 		$CanFeed[%Client] = "";
+		return;
+	}
+	$CanFeed[%Client] = true;
+	Schedule::add("Chocobo::Talk("@%Client@", 0, Clear);", 60, "ChocoTalk"@%Client);
 }
 function processMenuSelling(%Client, %opt) {
 
@@ -1181,16 +1158,234 @@ function processMenuReleaseing(%Client, %opt) {
 }
 
 $MaxWorldChocobo = 12;
+
+// ============================================================
+// VEHICLE-MODE CHOCOBO - DEFAULT ON (verified in-game 2026-07-16)
+// ============================================================
+// The real chocobo model is rigged as a VEHICLE shape ("dummy pilot128" seat
+// node) - using it as PlayerData crashes on mount. This follows the route Deus
+// prototyped (his commented className="Vehicle"/shapeFile="flyer" fossil in
+// ChocoboArmor.cs). chocobo.dts is forcefield.DTS with binary fixes: details
+// table (dummies were LOD entries -> crash), dummy nodes reparented under
+// root128, bounds origin de-offset (mount pos + whole-bird culling), root
+// +90/eye -90/pilot -90 yaw set (facing + camera), walk seq renamed "thrust"
+// (Flier.cpp plays it unguarded -> was SetSequence(-1) crash; now the legs
+// animate while moving). Rider sits via the NATIVE-PORT getMountPose engine
+// fix (driverPose was never applied in stock).
+// Opt-outs (per server boot): $Choco::VehicleMode = 0 -> old on-foot Player
+// chocobo; $Choco::BirdShape = 0 -> flyer shell instead of the bird.
+$Choco::VehicleMode = 1;
+$Choco::BirdShape = 1;
+exec(ChocoboSkins);   // per-color bird datablocks (ChocoboVehicleY/R/B/G/K/W/Au)
+exec(ChocoboTrainer); // rarity/price tables, buy menus, breeding (trainer townbot)
+// Datablock adapted from Kronos RPG Vehicle.cs FlierData Scout; all
+// referenced ids (flashExpLarge etc.) verified present in RMRPG.
+FlierData ChocoboVehicle
+{
+	explosionId = flashExpLarge;
+	debrisId = flashDebrisLarge;
+	className = "Vehicle";
+	shapeFile = "flyer";        // STAGE 2: "forcefield" (the actual chocobo)
+	shieldShapeName = "shield_medium";
+	mass = 9.0;
+	drag = 1.0;
+	density = 1.2;
+	maxBank = 0.05;             // ground mount: no banking lean in turns
+	maxPitch = 0.6;             // slope handling; flight blocked engine-side (maxAlt<0)
+	maxSpeed = 45;              // chocobo sprint, not scout-flier 140
+	minSpeed = -10;
+	lift = 0.9;
+	maxAlt = -1;                // <0 = GROUND VEHICLE (engine NATIVE-PORT: no hover pad, no altitude gain)                // ground bird: hug the terrain, no cruising
+	maxVertical = 1;            // flightless: tiny climb thrust; MUST be >0 - the engine divides by maxVertical/2 when steering (Flier.cpp:344), 0 = crash; also sets descent rate (-1.75x)
+	maxDamage = 1.5;
+	damageLevel = {1.0, 1.0};
+	maxEnergy = 100;
+	accel = 1.4;
+	groundDamageScale = 0.5;
+	repairRate = 0.5;
+	damageSound = SoundFlierCrash;
+	ramDamage = 0;              // a chocobo is not a battering ram
+	ramDamageType = -1;
+	mapFilter = 2;
+	mapIcon = "M_vehicle";
+	visibleToSensor = true;
+	shadowDetailMask = 2;
+	mountSound = SoundFlyerMount;
+	dismountSound = SoundFlyerDismount;
+	visibleDriver = true;
+	driverPose = 22;            // the pose the ChocoboArmor fossils intended
+	description = "Chocobo";
+};
+
+// STAGE 2: the REAL bird. forcefield.DTS carries the full vehicle node set
+// (dummy pilot128 seat, dummy exit, dummy eye - verified against flyer.DTS),
+// one idle sequence (missing thrust/jet is non-fatal for vehicles), single
+// 128 LOD, and a skinnable base.larmor.BMP material (future colored birds).
+// $Choco::BirdShape = 1 selects this; 0/unset = flyer shell (known-good).
+FlierData ChocoboVehicleBird
+{
+	explosionId = flashExpLarge;
+	debrisId = flashDebrisLarge;
+	className = "Vehicle";
+	shapeFile = "chocobo";      // forcefield.DTS with its details(LOD) table FIXED:
+	                            // the original registered dummy pilot128/exit/eye
+	                            // as DETAIL LEVELS (pilot tied with root128 at size
+	                            // 128) - ambiguous LOD rendered an empty subtree
+	                            // (invisible at angles) and broke mount resolution
+	                            // (client crash). chocobo.dts repoints details 1-3
+	                            // at root128 size 0. forcefield.DTS left untouched
+	                            // (door forcefields still reference it).
+	shieldShapeName = "shield_medium";
+	mass = 9.0;
+	drag = 1.0;
+	density = 1.2;
+	maxBank = 0.05;             // ground mount: no banking lean in turns
+	maxPitch = 0.6;             // slope handling; flight blocked engine-side (maxAlt<0)
+	maxSpeed = 45;
+	minSpeed = -10;
+	lift = 0.9;
+	maxAlt = -1;                // <0 = GROUND VEHICLE (engine NATIVE-PORT: no hover pad, no altitude gain)
+	maxVertical = 1;            // flightless: tiny climb thrust; MUST be >0 - the engine divides by maxVertical/2 when steering (Flier.cpp:344), 0 = crash; also sets descent rate (-1.75x)
+	maxDamage = 1.5;
+	damageLevel = {1.0, 1.0};
+	maxEnergy = 100;
+	accel = 1.4;
+	groundDamageScale = 0.5;
+	repairRate = 0.5;
+	damageSound = SoundFlierCrash;
+	ramDamage = 0;
+	ramDamageType = -1;
+	mapFilter = 2;
+	mapIcon = "M_vehicle";
+	visibleToSensor = true;
+	shadowDetailMask = 2;
+	mountSound = SoundFlyerMount;
+	dismountSound = SoundFlyerDismount;
+	visibleDriver = true;
+	driverPose = 22;
+	description = "Chocobo";
+};
+
+// ------------------------------------------------------------
+// Vehicle boarding/dismount handlers. RMRPG's Vehicle.cs was gutted, so the
+// engine's className="Vehicle" callbacks had NO script side - colliding with
+// a vehicle did nothing and the pilot never received control (spawned fine,
+// couldn't move). Ported from Kronos RPG Vehicle.cs (mount = seat 1 +
+// setControlObject; dismount = jump). ChocoboVehicle is the only Vehicle-class
+// object in RMRPG, but handlers guard on $isChocobo anyway.
+// ------------------------------------------------------------
+function Vehicle::onAdd(%this)
+{
+	// Fliers thrust/steer on ENERGY; without a recharge rate the vehicle
+	// spawns dead-stick (mounts fine, ignores input). Kronos Vehicle.cs
+	// does exactly this in its onAdd.
+	%this.shieldStrength = 0.0;
+	GameBase::setRechargeRate(%this, 10);
+	GameBase::setMapName(%this, "Chocobo");
+}
+
+function Vehicle::onCollision(%this, %object)
+{
+	if(!$isChocobo[%this])
+		return;
+	if(GameBase::getDamageLevel(%this) >= (GameBase::getDataName(%this)).maxDamage)
+		return;
+	if(getObjectType(%object) != "Player")
+		return;
+	// remount cooldown (set on dismount) so you don't instantly re-board
+	if(getSimTime() <= %object.newMountTime && %object.lastMount == %this)
+		return;
+	%clientId = Player::getClient(%object);
+	if(%clientId == "" || %clientId == -1 || %clientId == 0)
+		return;   // bots/NPCs don't ride
+	if(%this.chocoOwner != "" && %clientId != %this.chocoOwner) {
+		Client::sendMessage(%clientId, 0, "That's not your Chocobo!");
+		return;
+	}
+	if(!Vehicle::canMount(%this, %object))
+		return;   // pilot seat taken
+
+	// stow the weapon like Kronos does (restored on dismount)
+	%weapon = Player::getMountedItem(%object, $WeaponSlot);
+	if(%weapon != -1) {
+		%object.lastWeapon = %weapon;
+		Player::unMountItem(%object, $WeaponSlot);
+	}
+	Player::setMountObject(%object, %this, 1);
+	Client::setControlObject(%clientId, %this);   // THE missing piece: hand over the controls
+	playSound(GameBase::getDataName(%this).mountSound, GameBase::getPosition(%this));
+	%object.driver = 1;
+	%object.vehicle = %this;
+	%this.clLastMount = %clientId;
+}
+
+function Vehicle::jump(%this, %mom)
+{
+	Vehicle::dismount(%this, %mom);
+}
+
+function Vehicle::dismount(%this, %mom)
+{
+	%cl = GameBase::getControlClient(%this);
+	if(%cl == -1)
+		return;
+	%pl = Client::getOwnedObject(%cl);
+	if(getObjectType(%pl) != "Player")
+		return;
+	if(GameBase::testPosition(%pl, Vehicle::getMountPoint(%this, 0))) {
+		%pl.lastMount = %this;
+		%pl.newMountTime = getSimTime() + 3.0;
+		Player::setMountObject(%pl, %this, 0);
+		Player::setMountObject(%pl, -1, 0);
+		%rot = GameBase::getRotation(%this);
+		GameBase::setRotation(%pl, "0 0 " @ getWord(%rot, 2));
+		Player::applyImpulse(%pl, %mom);
+		Client::setControlObject(%cl, %pl);
+		playSound(GameBase::getDataName(%this).dismountSound, GameBase::getPosition(%this));
+		if(%pl.lastWeapon != "") {
+			Player::useItem(%pl, %pl.lastWeapon);
+			%pl.lastWeapon = "";
+		}
+		%pl.driver = "";
+		%pl.vehicle = "";
+	}
+	else
+		Client::sendMessage(%cl, 0, "Can not dismount - Obstacle in the way.");
+}
+
 function Chocobo::Spawn(%Client, %Choco, %pos) {
-	if($test == true) {
-		%j = 1;
-			$CSpawn[%j] = newObject("Fly","flier",Scout,true);
-			if($CSpawn[%j]) {
-				addToSet("MissionCleanup",$CSpawn[%j]);
-				//GameBase::startFadeOut($CSpawn[%j]);
-				GameBase::setPosition($CSpawn[%j],%pos);
-			}
-	return;
+	if($Choco::VehicleMode) {
+		if($ChocoboSpawn[%Client]) {
+			Client::sendMessage(%Client, 0, "You already have a Chocobo out!");
+			return;
+		}
+		if($Choco::BirdShape) {
+			// color -> skinned datablock (ChocoboSkins.cs); unknown colors ride Yellow
+			%c = $ChocoboColor[%Client, %Choco];
+			if(%c == "Red")         %vdata = ChocoboVehicleR;
+			else if(%c == "Blue")   %vdata = ChocoboVehicleB;
+			else if(%c == "Green")  %vdata = ChocoboVehicleG;
+			else if(%c == "Black")  %vdata = ChocoboVehicleK;
+			else if(%c == "White")  %vdata = ChocoboVehicleW;
+			else if(%c == "Gold")   %vdata = ChocoboVehicleAu;
+			else                    %vdata = ChocoboVehicleY;
+		}
+		else
+			%vdata = ChocoboVehicle;       // flyer shell (known-good fallback)
+		// spawn a few meters ahead so it doesn't auto-mount the moment it appears
+		%fwd = Vector::getFromRot(GameBase::getRotation(%Client), 4);
+		%pos = Vector::add(%pos, %fwd);
+		$ChocoboSpawn[%Client] = newObject("Choco_"@%Client, "flier", %vdata, true);
+		if($ChocoboSpawn[%Client]) {
+			addToSet("MissionCleanup", $ChocoboSpawn[%Client]);
+			GameBase::setPosition($ChocoboSpawn[%Client], %pos);
+			$isChocobo[$ChocoboSpawn[%Client]] = true;
+			$ChocoboSpawn[%Client].chocoOwner = %Client;  // only the owner may ride
+			Client::sendMessage(%Client, 0, "Your Chocobo scratches at the ground. Walk into it to ride! (vehicle-mode test)");
+		}
+		else
+			echo("Error in Chocobo::Spawn (vehicle mode).");
+		return;
 	}
 	if($ChocoboSpawn[%Client]) {
 		Client::sendMessage(%Client, 0, "You already have a Chocobo out!");

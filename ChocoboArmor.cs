@@ -104,9 +104,17 @@ $jump[ChocoboDex, %k] = 160;
 //Game::playerSpawn(%id, True);
 //spawnPlayer(%armor, %spawnPos, %spawnRot);
 
+// forcefield.DTS is the actual chocobo model hiding under a stolen filename
+// (creature skeleton: leftleg/shin, rightleg/shin, body, root; "dummy pilot128"
+// rider node; single "idle" sequence). BUT it is rigged as a VEHICLE-style
+// shape, not a Player armor: using it as PlayerData crashes the server on
+// mount (missing the player sequence/mount-node set). Note the fossil above -
+// className="Vehicle"; shapeFile="flyer" - Deus apparently hit the same wall
+// and fell back to rpgmalehuman as a placeholder. Making the bird work means
+// the vehicle-mount route (or re-rigging the DTS), not a shapeFile swap.
 $Choco::Armor = "rpgmalehuman";
 
-$Choco::AnimData[1] = "walk";
+$Choco::AnimData[1] = "walk"; // rpgmalehuman sequence; the bird shape only has "idle"
 
 PlayerData ChocoboArmor1
 {

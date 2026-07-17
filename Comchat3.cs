@@ -5,6 +5,9 @@ function CheckChatState(%Client, %closestId, %state) {
 		AI::sayLater(%Client, $TownBot[%closestId, NAME], $TownBot[%closestId, SayBye], "NULL");
 		$state[%Client, %closestId] = "";
 		$ClientData[%Client, BotId] = "";
+		// KronosHUD: close the dialogue window on conversation timeout (this
+		// path clears $state without running BotChatStuff/AfterChat).
+		KronosNPC_EndRM(%Client);
 	}
 	%Client.guiLock = "";
 }
@@ -44,7 +47,7 @@ function BotChatStuff(%Client, %closestId, %message, %cropped, %initTalk) {
 		else if($state[%Client, %closestId] == 1) {
 			if(String::findSubStr(%message, %trigger[2]) != -1) {
 
-				schedule("SetupShop("@%Client@", "@%closestId@");", 2.1);
+				schedule("SetupShop("@%Client@", "@%closestId@");", 0.6);
 
 				AI::sayLater(%Client, %closestId, "Take a look at what I have.", "NULL");//use NULL to clear out of this msg madness
 				$state[%Client, %closestId] = "";
@@ -60,6 +63,55 @@ function BotChatStuff(%Client, %closestId, %message, %cropped, %initTalk) {
 				$Quiver[%Client] = String::replace($Quiver[%Client], %w, %w+1);
 				$Quiver[%Client] = $Quiver[%Client]@" FreeSlot";
 				AI::sayLater(%Client, %closestId, "Here you go. Have a nice day!", "NULL");
+				$state[%Client, %closestId] = "";
+			}
+		}
+		%Client.guiLock = "";
+	}
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	else if(%botTYPE == "chocotrainer") {
+		// Chocobo trainer (2026-07-17): the acquisition + care NPC the 0.49
+		// system always needed. Grants the trainer-proximity flag (unlocks
+		// feed/ride/breed/sell in the Chocobo menus), sets the food-shop tier,
+		// and offers Buy (ChocoboTrainer.cs) / Stable (existing menus).
+		%trigger[2] = "buy";
+		%trigger[3] = "stable";
+		%trigger[4] = "no";
+		RM_KNPC_SetUpKeys(%Client, "b buy s stable n no");
+
+		// any interaction refreshes the proximity flag + assigns this
+		// trainer's feed-shop tier (FOODTIER on the townbot, e.g. "Shop1")
+		Chocobo::Talk(%Client);
+		if($TownBot[%closestId, FOODTIER] != "")
+			$Feeding[%Client] = $TownBot[%closestId, FOODTIER];
+
+		if($state[%Client, %closestId] == "") {
+			if(%initTalk) {
+				%p1 = "Kweh! Welcome to the Chocobo stables! Want to buy a bird, or tend to your own?";
+				%p2 = "\n\n  <f1>B<f0>uy a Chocobo.\n  <f1>S<f0>table (my Chocobos).\n  <f1>N<f0>o thanks.";
+				AI::sayLater(%Client, %closestId, %p1, %p2);
+				$state[%Client, %closestId] = 1;
+				schedule("CheckChatState("@%Client@", "@%closestId@", 1);", 8);
+			}
+			$ClientData[%Client, BotId] = %closestId;
+		}
+		else if($state[%Client, %closestId] == 1) {
+			if(String::findSubStr(%message, %trigger[2]) != -1) {
+				schedule("MenuChocoboBuy("@%Client@");", 0.6);
+				AI::sayLater(%Client, %closestId, "Only the finest birds! Gold ones you'll have to breed yourself...", "NULL");
+				$state[%Client, %closestId] = "";
+			}
+			else if(String::findSubStr(%message, %trigger[3]) != -1) {
+				if($Chocobo[%Client] >= 1) {
+					schedule("MenuChocobo("@%Client@");", 0.6);
+					AI::sayLater(%Client, %closestId, "Your birds missed you! Kweh!", "NULL");
+				}
+				else
+					AI::sayLater(%Client, %closestId, "You don't have any Chocobos yet! Say buy if you want one.", "NULL");
+				$state[%Client, %closestId] = "";
+			}
+			else if(String::findSubStr(%message, %trigger[4]) != -1) {
+				AI::sayLater(%Client, %closestId, $TownBot[%closestId, SayBye], "NULL");
 				$state[%Client, %closestId] = "";
 			}
 		}
@@ -96,7 +148,7 @@ function BotChatStuff(%Client, %closestId, %message, %cropped, %initTalk) {
 			if(String::findSubStr(%message, %trigger[4]) != -1) {
 				//storage
 				AI::sayLater(%Client, %closestId, "This is the equipment you have stored here.", "NULL");
-				schedule("SetupBank("@%Client@", "@%closestId@");", 2.1);
+				schedule("SetupBank("@%Client@", "@%closestId@");", 0.6);
 				$state[%Client, %closestId] = "";
 			}
 			%Client.guiLock = "";
@@ -352,7 +404,7 @@ function BotChatStuff(%Client, %closestId, %message, %cropped, %initTalk) {
 			%t4 = String::findSubStr(%message, %trigger[4]);
 			if(%t4 != -1 || ($state[%Client, %closestId] == -5 && %t4 != -1)) {
 				if($TownBot[%closestId, SHOP] != "") {
-					schedule("SetupShop("@%Client@", "@%closestId@");", 2);
+					schedule("SetupShop("@%Client@", "@%closestId@");", 0.6);
 					AI::sayLater(%Client, %closestId, "Take a look at what I have.", "NULL");
 				}
 				else
@@ -460,7 +512,7 @@ function BotChatStuff(%Client, %closestId, %message, %cropped, %initTalk) {
 			%t4 = String::findSubStr(%message, %trigger[4]);
 			if(%t4 != -1 || ($state[%Client, %closestId] == -5 && %t4 != -1)) {
 				if($TownBot[%closestId, SHOP, %i] != "") {
-					schedule("SetupShop("@%Client@", "@%closestId@", "@%i@");", 2.1);
+					schedule("SetupShop("@%Client@", "@%closestId@", "@%i@");", 0.6);
 					AI::sayLater(%Client, %closestId, "Take a look at what I have.", "NULL");
 				}
 				else
@@ -494,7 +546,7 @@ function BotChatStuff(%Client, %closestId, %message, %cropped, %initTalk) {
 			{
 				if($BotInfo[%aiName, SHOP] != "")
 				{
-					schedule("SetupShop("@%Client@", "@%closestId@");", 2.1);
+					schedule("SetupShop("@%Client@", "@%closestId@");", 0.6);
 					AI::sayLater(%Client, %closestId, "Take a look at what I have.", "NULL");
 				}
 				else

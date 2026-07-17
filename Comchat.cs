@@ -305,6 +305,57 @@ function remoteSay(%Client, %team, %message) {
 		return;
 	}
 
+	// ============================================================
+	// Bug reports + feature requests (ported from Kingdom of Kronos).
+	// Placed BEFORE the dead-check so players can report death bugs.
+	// Entries append to temp\bugreports.txt / temp\featurerequests.txt.
+	// ============================================================
+	if(%w1 == "#bugreport")
+	{
+		if(%cropped == "")
+		{
+			Client::sendMessage(%Client, $MsgRed, "Syntax: #bugreport your bug description");
+			Client::sendMessage(%Client, $MsgBeige, "Example: #bugreport My weapon disappeared after I died");
+		}
+		else
+		{
+			%timestamp = getIntegerTime(true);
+			%bugReportLine = "[" @ %timestamp @ "] " @ Client::getName(%Client) @ ": " @ %cropped;
+
+			// unique timestamp index keeps each entry separate; wildcard export
+			// appends to the file, then the entry is cleared
+			$BugReport::entry[%timestamp] = %bugReportLine;
+			export("$BugReport::entry*", "temp\\bugreports.txt", true);
+			$BugReport::entry[%timestamp] = "";
+
+			Client::sendMessage(%Client, $MsgGreen, "Bug report submitted. Thank you!");
+			echo("[BUGREPORT]: " @ Client::getName(%Client) @ " submitted: " @ %cropped);
+		}
+		return;
+	}
+
+	if(%w1 == "#requestfeature" || %w1 == "#featurerequest")
+	{
+		if(%cropped == "")
+		{
+			Client::sendMessage(%Client, $MsgRed, "Syntax: #featurerequest your feature request");
+			Client::sendMessage(%Client, $MsgBeige, "Example: #featurerequest Add a new weapon type for mages");
+		}
+		else
+		{
+			%timestamp = getIntegerTime(true);
+			%featureRequestLine = "[" @ %timestamp @ "] " @ Client::getName(%Client) @ ": " @ %cropped;
+
+			$FeatureRequest::entry[%timestamp] = %featureRequestLine;
+			export("$FeatureRequest::entry*", "temp\\featurerequests.txt", true);
+			$FeatureRequest::entry[%timestamp] = "";
+
+			Client::sendMessage(%Client, $MsgGreen, "Feature request submitted. Thank you!");
+			echo("[FEATUREREQUEST]: " @ Client::getName(%Client) @ " submitted: " @ %cropped);
+		}
+		return;
+	}
+
 	///////////////////////////////////////////////////////////////////////////////////////////////
 	if(IsDead(%Client) && %Client != 2048)
 		return;
@@ -430,13 +481,15 @@ function remoteSay(%Client, %team, %message) {
 		if($CanTrade[%Client] == false) {
 			if(%cropped != "") {
 				if(%cropped == yes) {
-					Client::sendMessage(%Client, 0, "You traded "@$ChocoboName[%Client, $MenuTradeChocoboId::Buyer[%Client]]@" for "@$ChocoboName[$MenuTradeHostId[%Client], $MenuTradeChocoboId::Host[$MenuTradeHostId[%Client]]]);
-					Client::sendMessage($MenuTradeHostId[%Client], 0, "You traded "@$ChocoboName[$MenuTradeHostId[%Client], $MenuTradeChocoboId::Host[$MenuTradeHostId[%Client]]]@" for "@$ChocoboName[%Client, $MenuTradeChocoboId::Buyer[%Client]]);
+					// fixed 2026-07-17: bird ids are stored on the HOST index
+					%host = $MenuTradeHostId[%Client];
+					Client::sendMessage(%Client, 0, "You traded "@$ChocoboName[%Client, $MenuTradeChocoboId::Buyer[%host]]@" for "@$ChocoboName[%host, $MenuTradeChocoboId::Host[%host]]);
+					Client::sendMessage(%host, 0, "You traded "@$ChocoboName[%host, $MenuTradeChocoboId::Host[%host]]@" for "@$ChocoboName[%Client, $MenuTradeChocoboId::Buyer[%host]]);
 
-					Chocobo::Trade($MenuTradeHostId[%Client], %Client, Traded);
+					Chocobo::Trade(%host, %Client, traded);
 				}
 				else
-					Chocobo::Trade($MenuTradeHostId[%Client], %Client, failedBuyer);
+					Chocobo::Trade($MenuTradeHostId[%Client], %Client, failedbuyer);
 			}
 			else
 				Client::sendMessage(%Client, 0, "Type '#trade yes' if you want to make this trade! Or '#trade no' if you don't.");
@@ -444,10 +497,51 @@ function remoteSay(%Client, %team, %message) {
 		else if($CanTrade[%Client] == true) {
 			if(%cropped != "") {
 				if(%cropped == no)
-					Chocobo::Trade(%Client, $MenuTradeBuyerId[%Client], failedHost);
+					Chocobo::Trade(%Client, $MenuTradeBuyerId[%Client], failedhost);
 			}
 			else
 				Client::sendMessage(%Client, 0, "Type '#trade no' to cancel the trade!");
+		}
+		return;
+	}
+	// #buy: accept/refuse a player-to-player Chocobo SALE (was a dead end -
+	// Chocobo::Trade's Sell branch told the buyer to type this, but no handler
+	// existed). Price = the bird's Worth; the bird moves via Chocobo::GiveBird.
+	if(%w1 == "#buy") {
+		if($CanBuyChocobo[%Client] != "") {
+			%host = $MenuTradeHostId[%Client];
+			%hostChoco = $CanBuyChocobo[%Client];
+			if(%cropped == yes) {
+				%price = $ChocoboWorth[%host, %hostChoco];
+				if($COINS[%Client] < %price) {
+					Client::sendMessage(%Client, 1, "You can't afford that Chocobo! ("@FixM(%price)@" gil)");
+					return;
+				}
+				if(Chocobo::GiveBird(%host, %Client, %hostChoco)) {
+					$COINS[%Client] -= %price;
+					$COINS[%host] += %price;
+					RefreshAll(%Client);
+					RefreshAll(%host);
+					Client::sendMessage(%Client, 0, "You bought the Chocobo for "@FixM(%price)@" gil!~wSoundMoney1.wav");
+					Client::sendMessage(%host, 0, Client::getName(%Client)@" bought your Chocobo for "@FixM(%price)@" gil!~wSoundMoney1.wav");
+				}
+				$CanBuyChocobo[%Client] = "";
+				$MenuTradeHostId[%Client] = "";
+				$MenuTradeChocoboId::Host[%host] = "";
+				$IsTradeing[%host] = "";
+				$IsTradeing[%Client] = "";
+			}
+			else if(%cropped == no) {
+				Client::sendMessage(%Client, 1, "You declined the sale.");
+				Client::sendMessage(%host, 1, Client::getName(%Client)@" declined the sale.");
+				$CanBuyChocobo[%Client] = "";
+				$MenuTradeHostId[%Client] = "";
+				$MenuTradeChocoboId::Host[%host] = "";
+				$IsTradeing[%host] = "";
+				$IsTradeing[%Client] = "";
+			}
+			else
+				Client::sendMessage(%Client, 0, "Type '#buy yes' to buy the Chocobo! Or '#buy no' to decline.");
 		}
 		return;
 	}
@@ -455,13 +549,15 @@ function remoteSay(%Client, %team, %message) {
 		if($CanBreed[%Client] == false) {
 			if(%cropped != "") {
 				if(%cropped == yes) {
-					Client::sendMessage(%Client, 0, "You breed "@$ChocoboName[%Client, $MenuBreedChocoboId::Buyer[%Client]]@" with "@$ChocoboName[$MenuBreedHostId[%Client], $MenuBreedChocoboId::Host[$MenuTradeHostId[%Client]]]);
-					Client::sendMessage($MenuTradeHostId[%Client], 0, "You breed "@$ChocoboName[$MenuBreedHostId[%Client], $MenuBreedChocoboId::Host[$MenuBreedHostId[%Client]]]@" with "@$ChocoboName[%Client, $MenuBreedChocoboId::Buyer[%Client]]);
+					// fixed 2026-07-17: bird ids are stored on the HOST index
+					%host = $MenuBreedHostId[%Client];
+					Client::sendMessage(%Client, 0, "You breed "@$ChocoboName[%Client, $MenuBreedChocoboId::Buyer[%host]]@" with "@$ChocoboName[%host, $MenuBreedChocoboId::Host[%host]]);
+					Client::sendMessage(%host, 0, "You breed "@$ChocoboName[%host, $MenuBreedChocoboId::Host[%host]]@" with "@$ChocoboName[%Client, $MenuBreedChocoboId::Buyer[%host]]);
 
-					Chocobo::Breed($MenuBreedHostId[%Client], %Client, Breeding);
+					Chocobo::Breed(%host, %Client, Breeding);
 				}
 				else
-					Chocobo::Breed($MenuBreedHostId[%Client], %Client, failedBuyer);
+					Chocobo::Breed($MenuBreedHostId[%Client], %Client, failedbuyer);
 			}
 			else
 				Client::sendMessage(%Client, 0, "Type '#breed yes' if you want to breed these Chocobos! Or '#breed no' if you don't.");
@@ -469,7 +565,7 @@ function remoteSay(%Client, %team, %message) {
 		else if($CanBreed[%Client] == true) {
 			if(%cropped != "") {
 				if(%cropped == no)
-					Chocobo::Breed(%Client, $MenuTradeBuyerId[%Client], failedHost);
+					Chocobo::Breed(%Client, $MenuBreedBuyerId[%Client], failedhost);
 			}
 			else
 				Client::sendMessage(%Client, 0, "Type '#breed no' to cancel!");

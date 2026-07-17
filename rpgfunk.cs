@@ -204,22 +204,32 @@ function DoCamp(%Client, %savecharTry) {
 	return False;
 }
 
-function SaveCharacter(%Client, %docamp) {
+function SaveCharacter(%Client, %docamp, %force) {
 
 	//first pass check
 	if(%Client.isInvalid || !$HasLoadedAndSpawned[%Client]) //|| IsInRoster(%Client) || IsInArenaDueler(%Client))
 		return FALSE;
 
+	//AI bots are real clients (GetPlayerIdList doesn't filter them) and AI.cs sets
+	//$HasLoadedAndSpawned for them - never write character save files for bots
+	if(Player::isAiControlled(%Client))
+		return FALSE;
+
 	//second pass check, will cause 4 line flood if the client is invalid
 	//only do this as a "last resort" test.  if the player is detected to be dead, then there shouldn't be a problem
-	if(!IsDead(%Client))
+	//%force (disconnect save) bypasses the probe: the client already passed the first-pass
+	//checks, and during disconnect teardown the inventory probe can fail on a perfectly
+	//valid character - losing the whole session's progress
+	if(!IsDead(%Client) && !%force)
 	{
 		Player::incItemCount(%Client, Tool);
 		%x = Player::getItemCount(%Client, Tool);
 		Player::decItemCount(%Client, Tool);
 		%y = Player::getItemCount(%Client, Tool);
-		if(%x == %y)
+		if(%x == %y) {
+			echo("SAVECHAR: inventory probe FAILED for "@Client::getName(%Client)@" ("@%Client@") - character NOT saved");
 			return FALSE;
+		}
 	}
 
 	%name = Client::getName(%Client);
@@ -276,6 +286,12 @@ function SaveCharacter(%Client, %docamp) {
 	$SaveData["[\""@%name@"\", 0, 27]"] = $CLASS[%Client];
 	$SaveData["[\""@%name@"\", 0, 28]"] = $MaxHP[%Client];
 	$SaveData["[\""@%name@"\", 0, 29]"] = $PKflag[%Client];
+
+	//last equipped weapon (field 48) - re-equipped on next spawn/login (Kronos-style)
+	%lastWeap = $ClientData[%Client, UsingWeapon];
+	if(%lastWeap == "-1" || %lastWeap == -1)
+		%lastWeap = "";
+	$SaveData["[\""@%name@"\", 0, 48]"] = %lastWeap;
 
 	$SaveData["[\""@%name@"\", 0, 31]"] = $BurnedClientTagId[%Client];
 	$SaveData["[\""@%name@"\", 0, 32]"] = $isBlessed[%Client];
@@ -468,6 +484,9 @@ function LoadCharacter(%Client) {
 		$BurnedClientTagId[%Client] = $SaveData[%name, 0, 31];
 		$isBlessed[%Client] = $SaveData[%name, 0, 32];
 		$PL[%Client] =  $SaveData[%name, 0, 33];
+
+		//last equipped weapon (field 48) - equipped by Game::playerSpawned
+		$ClientData[%Client, SavedWeapon] = $SaveData[%name, 0, 48];
 
 		$showexp[%Client] = $SaveData[%name, 30, 1];
 
@@ -1685,6 +1704,7 @@ function RefreshAll(%Client) {
 		refreshSTAREGEN(%Client);
 		UpdateClassName(%Client);
 		remoteEval(%Client,"RefreshHPMPEXP", Fix(getHP(%Client), %Client, HP), Fix(getMANA(%Client), %Client, MP), Fix(getSTA(%Client), %Client, STA), Fix(getTNL(%Client, Strip), %Client, EXP), $ShowEXP[%Client]);
+		KronosHUD_Push(%Client);   // KronosHUD: mirror the refresh to the HUD bars
 	}
 }
 
@@ -2119,6 +2139,10 @@ function FellOffMap(%id) {
 }
 
 function Game::refreshClientScore(%Client) {
+
+	// KronosHUD: score refreshes accompany level/exp/coin changes - push the
+	// HUD stats too (KronosHUD_Push self-guards for bots/unspawned clients).
+	KronosHUD_Push(%Client);
 
 	//echo("$templvl["@%Client@"]: "@$templvl[%Client]);
 	//echo("GetLevel("@$EXP[%Client]@", "@$CLASS[%Client]@"): "@GetLevel($EXP[%Client], $CLASS[%Client]));
@@ -2590,6 +2614,22 @@ function RecursiveWorld(%seconds) {
 //	$ticker[5] = floor($ticker[5]+1);
 
 	$ticker[6] = floor($ticker[6]+1); //Chocobo $ticker
+
+	$ticker[7] = floor($ticker[7]+1); //periodic character autosave
+
+	//Periodic character saves (Kronos-style): every $CharSaveFreq seconds, save every
+	//connected player quietly (no chat spam - the SaveWorld loop below still messages).
+	//Skipped on the cycles where the SaveWorld loop is about to save everyone anyway.
+	if($ticker[7] >= ($CharSaveFreq / %seconds))
+	{
+		if($ticker[1] < ($SaveWorldFreq / %seconds))
+		{
+			%list = GetPlayerIdList();
+			for(%i = 0; GetWord(%list, %i) != -1; %i++)
+				SaveCharacter(GetWord(%list, %i), True);
+		}
+		$ticker[7] = 0;
+	}
 
 	if($ticker[1] >= ($SaveWorldFreq / %seconds))
 	{

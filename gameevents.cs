@@ -120,11 +120,36 @@ function Game::initialMissionDrop(%clientId) {
 		}
 		else {
 
+			// Put the client into OBSERVER mode before the join menu. This
+			// switches the client to PlayGui (where the ScriptGL KronosHUD
+			// overlays + the modern menu panel render) AND positions the
+			// observer camera at a real map point - so the "Join this world"
+			// menu is actually VISIBLE instead of drawing invisibly over a
+			// black void. (This replaces the old auto-join workaround, which
+			// skipped the menu entirely because it couldn't be seen.)
+			RMSetObserver(%clientId);
+
+			// Probe for a HUD client (sets hasKronosHUD early; vanilla ignores it)
+			remoteEval(%clientId, "KHudPing");
+
+			// Kronos-style auto-join: returning characters spawn straight into the
+			// world on login - no "Press 1 to join" menu. The 2s delay lets the
+			// client finish switching to PlayGui (same timing the menu had). Only
+			// NEW characters (choosingGroup branch above) see the observer cam,
+			// for class selection. MenuJustJoined/ScheduleKick kept below in case
+			// a manual join menu is ever needed again.
 			$ClientWaiting[%clientId] = "True 1";
-			Schedule("MenuJustJoined("@%clientId@");", 2);
-			Schedule("ScheduleKick("@%clientId@");", 60+30); //1min 30 sec warning... and then 60 more to kick...
+			Schedule("AutoJoinWorld("@%clientId@");", 2);
 		}
 	}
+}
+
+function AutoJoinWorld(%clientId) {
+
+	if($ClientWaiting[%clientId] == "")	//disconnected during the 2s delay
+		return;
+
+	ClientJustJoinedTeam(%clientId);
 }
 
 function MenuJustJoined(%clientId, %t) {
@@ -132,6 +157,9 @@ function MenuJustJoined(%clientId, %t) {
 	if($ClientWaiting[%clientId] == "")	//hehe oops
 		return;
 
+	// The client is in observer mode (PlayGui) by now - see the RMSetObserver
+	// call in the join branch above - so this menu renders for both HUD
+	// clients (modern KronosMenu panel) and vanilla clients (stock ChatMenu).
 	if(%t == "")
 		%msg = "Welcome!";
 	else
@@ -139,8 +167,7 @@ function MenuJustJoined(%clientId, %t) {
 	Client::buildMenu(%clientId, %msg, "justjoined", false);
 
 	Client::addMenuItem(%clientId, "1Join this world.", "join");
-	//Client::addMenuItem(%clientId, "--:-:-:-:-:-:- :-", "");
-	//Client::addMenuItem(%clientId, "9Quit.", "quit");
+	Client::addMenuItem(%clientId, "9Quit.", "quit");
 }
 
 function ScheduleKick(%clientId) {
@@ -185,8 +212,16 @@ function ClientJustJoinedTeam(%ClientId) {
 	RefreshAll(%ClientId);
 	Schedule("remoteEval("@%ClientId@",\"ATKText\", \"<jc>Welcome to Red Moon RPG.\", wait);", 2);
 	Schedule("CheckIsBlessed("@%clientId@");", 3);
+	// join notice: #bugreport usage + repack download link (advertisements.cs)
+	Schedule("RMJoinNotice("@%ClientId@");", 6);
 
-	CheckClientFiles(%ClientId);
+	// Client-file check DELAYED 20s: with the KronosHUD auto-join this
+	// function now runs ~2s after join-clear, while the client is still
+	// loading the mission - the rmCheck probes couldn't answer inside
+	// DeusScripts' 12s verdict window and every joiner got a false
+	// "Not all of your needed files were loaded" warning. The old manual
+	// "press 1 to join" step gave clients this grace implicitly.
+	Schedule("CheckClientFiles("@%ClientId@");", 20);
 }
 
 function DoServerStatus(%clientId) {

@@ -20,7 +20,10 @@ function Server::onClientDisconnect(%clientId) {
 		if($ClientData[%clientId, "isMimic"])
 			 ChangeRace(%clientId, "Human");
 
-		SaveCharacter(%clientId, %docamp);
+		//force = true: skip the inventory probe during disconnect teardown (it can
+		//fail on a valid character and silently discard the session's progress)
+		%saved = SaveCharacter(%clientId, %docamp, True);
+		echo("SAVECHAR: disconnect save for "@Client::getName(%clientId)@" ("@%clientId@") -> "@%saved);
 	}
 	else
 	{

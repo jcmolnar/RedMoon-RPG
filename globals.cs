@@ -6,6 +6,7 @@ if($dbechoMode2 == "") $dbechoMode2 = 2;
 $arenaOn = False;
 if($underwaterEffects == "") $underwaterEffects = False;
 if($SaveWorldFreq == "") $SaveWorldFreq = 15 * 60;
+if($CharSaveFreq == "") $CharSaveFreq = 5 * 60;	//periodic character autosave (seconds)
 if($ChangeWeatherFreq == "") $ChangeWeatherFreq = 9999999;
 if($initlck == "") $initlck = 30;
 if($MaxDroppedPacksPerPlayer == "") $MaxDroppedPacksPerPlayer = 30; //10

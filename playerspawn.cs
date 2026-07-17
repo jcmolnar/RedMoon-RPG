@@ -154,6 +154,27 @@ function Game::playerSpawned(%pl, %Client, %armor) {
 	deleteVariables("Client::tmp"@%Client@"*");
 
 	RefreshAll(%Client);
+
+	//re-equip the last used weapon (Kronos-style weapon persistence).
+	//$ClientData[SavedWeapon] carries it across login (save field 48);
+	//UsingWeapon carries it across a respawn within the session.
+	if(!Player::isAiControlled(%Client)) {
+		%lastWeap = $ClientData[%Client, SavedWeapon];
+		if(%lastWeap == "" || %lastWeap == "-1")
+			%lastWeap = $ClientData[%Client, UsingWeapon];
+		$ClientData[%Client, SavedWeapon] = "";
+
+		if(%lastWeap != "" && %lastWeap != "-1") {
+			//only if the weapon is actually in their inventory
+			%wlist = Client::getItemListByClass(%Client, "Weapon", "ItemList");
+			for(%wi = 0; (%wit = GetWord(%wlist, %wi)) != -1; %wi++) {
+				if(%wit == %lastWeap) {
+					RPGmountItem(%pl, %lastWeap, $WeaponSlot);
+					break;
+				}
+			}
+		}
+	}
 }
 
 function Game::autoRespawn(%Client)

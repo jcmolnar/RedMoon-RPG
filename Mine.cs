@@ -992,6 +992,35 @@ function Bomb444::onAdd(%this)
 {
 	schedule("Mine::Detonate(" @ %this @ ");", 0.2, %this);
 }
+//Supercheebomb1: referenced by SpellNum61 "Ashes to ashes" and SpellNum68 "fix"
+//(spells.cs) but was never defined anywhere (checked all loose scripts + every
+//.vol in the tree), so both spells spawned nothing. Defined 2026-07-17 as a
+//zero-impact FX bomb cloned from Bomb444 -- both spells carry damageValue 0,
+//so this is visual-only. DESIGN DECISION: fire2Exp picked to fit "Ashes to
+//ashes"; swap explosionId if a different effect fits better.
+MineData Supercheebomb1
+{
+	mass = 0.3;
+	drag = 1.0;
+	density = 2.0;
+	elasticity = 1.0;
+	friction = 1.0;
+	className = "Handgrenade";
+	description = "Handgrenade";
+	shapeFile = "boltbolt1";
+	shadowDetailMask = 4;
+	explosionId = fire2Exp;
+	explosionRadius = 0.0;
+	damageValue = 1.000;
+	damageType = $SpellDamageType;
+	kickBackStrength = 0;
+	triggerRadius = 10.5;
+	maxDamage = 0.10;
+};
+function Supercheebomb1::onAdd(%this)
+{
+	schedule("Mine::Detonate(" @ %this @ ");", 0.2, %this);
+}
 
 function Mine::onDamage(%this,%type,%value,%pos,%vec,%mom,%object)
 {

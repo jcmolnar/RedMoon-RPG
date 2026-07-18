@@ -580,7 +580,7 @@ $Spell::LOSrange[31] = 100;
 $Spell::manaCost[31] = 100;
 $Spell::startSound[31] = thunderlight;
 $Spell::endSound[31] = shockExplosion;
-$Spell::classRestrictions[29] = ",Cleric,Paladin,Bard,";
+$Spell::classRestrictions[31] = ",Cleric,Paladin,Bard,"; //was [29] (copy-paste bug): left Missile castable by ALL classes and stomped wound's Thief access
 $Spell::minLevel[31] = 100;
 $Spell::groupListCheck[31] = False;
 $Spell::Type[31] = $MagicType[White];
@@ -740,6 +740,7 @@ $Spell::LOSrange[41] = 500;
 $Spell::manaCost[41] = 150;
 $Spell::startSound[41] = spellstart;
 $Spell::endSound[41] = thunderlight;
+$Spell::radius[41] = "20"; //added 2026-07-17: was never set, so Storm4's radius damage + bomb scatter were nil; 20 matches its tier peer Gale4 (L150/500dmg/Mage-only)
 $Spell::classRestrictions[41] = ",Mage,";
 $Spell::minLevel[41] = 150;
 $Spell::groupListCheck[41] = False;
@@ -790,7 +791,7 @@ $Spell::LOSrange[44] = 500;
 $Spell::manaCost[44] = 320;
 $Spell::startSound[44] = spellstart;
 $Spell::endSound[44] = thunderlight;
-$Spell::radius[42] = "15";
+$Spell::radius[44] = "15"; //was [42] (copy-paste bug): Gale3 had no radius so SpellRadiusDamage never hit anyone
 $Spell::classRestrictions[44] = ",Mage,Druid,Paladin,Summoner,";
 $Spell::minLevel[44] = 50;
 $Spell::groupListCheck[44] = False;
@@ -807,7 +808,7 @@ $Spell::LOSrange[45] = 500;
 $Spell::manaCost[45] = 320;
 $Spell::startSound[45] = spellstart;
 $Spell::endSound[45] = thunderlight;
-$Spell::radius[42] = "20";
+$Spell::radius[45] = "20"; //was [42] (copy-paste bug): Gale4 had no radius, and Gale's own radius got inflated 10->20
 $Spell::classRestrictions[45] = ",Mage,";
 $Spell::minLevel[45] = 150;
 $Spell::groupListCheck[45] = False;
@@ -859,7 +860,7 @@ $Spell::endSound[48] = portal1;
 $Spell::classRestrictions[48] = ",Ranger,";
 $Spell::minLevel[48] = 30;
 $Spell::groupListCheck[48] = False;
-$Spell::Type[42] = $MagicType[Ice];
+$Spell::Type[48] = $MagicType[Ice]; //was [42] (copy-paste bug): stomped Gale's Wind type and left IceArrow untyped
 
 $Spell::keyword[49] = "blockfront";
 $Spell::index[blockfront] = 49;
@@ -1054,6 +1055,7 @@ $Spell::damageValue[%index] = 0;
 $Spell::manaCost[%index] = 1;
 $Spell::startSound[%index] = LoopSP;
 $Spell::endSound[%index] = AbsorbABS;
+$Spell::radius[%index] = "20"; //added 2026-07-17: was unset, so all 9 FX bombs stacked on one point (SpellNum61 scatters over radius/2 like Storm4)
 $Spell::classRestrictions[%index] = ",Cleric,Druid,Ranger,Paladin,Fighter,Thief,Bard,Mage,Summoner,";
 $Spell::minLevel[%index] = 1;
 $Spell::groupListCheck[%index] = False;
@@ -1169,6 +1171,7 @@ $Spell::damageValue[%index] = 0;
 $Spell::manaCost[%index] = 1;
 $Spell::startSound[%index] = LoopSP;
 $Spell::endSound[%index] = AbsorbABS;
+$Spell::radius[%index] = "20"; //added 2026-07-17: was unset, so all 9 FX bombs stacked on one point (SpellNum68 scatters over radius/2 like Storm4)
 $Spell::classRestrictions[%index] = ",Cleric,Druid,Ranger,Paladin,Fighter,Thief,Bard,Mage,Summoner,";
 $Spell::minLevel[%index] = 1;
 $Spell::groupListCheck[%index] = False;
@@ -1890,7 +1893,7 @@ function SpellNum34(%Client, %castObj, %castPos) {
 
 			%newPos = %xPos@" "@%yPos@" "@%zPos;
 
-			schedule("CreateAndDetBomb("@%Client@", \"Bomb8\", \""@%newPos@"\", False, "@%index@");", %i / 20, %player);
+			schedule("CreateAndDetBomb("@%Client@", \"Bomb108\", \""@%newPos@"\", False, "@%index@");", %i / 20, %player); //was "Bomb8" (undefined anywhere, incl. vols) -- this FX loop silently spawned nothing; Bomb108 = the star-burst the first loop uses
 		}
 		schedule("CreateAndDetBomb("@%Client@", \"Bomb200\", \""@%castPos@"\", False, "@%index@");", 1.0, %player);
 		schedule("CreateAndDetBomb("@%Client@", \"Bomb200\", \""@%castPos@"\", False, "@%index@");", 1.05, %player);
@@ -2193,8 +2196,9 @@ function SpellNum50(%Client, %castObj, %castPos) {
 function SpellNum51(%Client, %castObj, %castPos) {
 
 	//Light Utility
-	Client::sendmessage(%client,1,"Disabled till futher notice.");
-	return false;
+	//Re-enabled 2026-07-17: was stubbed with "Disabled till futher notice." + early return,
+	//but the full chain works: cast_truelight (Spells2.cs) -> lightrocket (baseProjData.cs)
+	//-> lightExp (baseExpData.cs). Slow glowing beam, lightRange 80, 15s life.
 	schedule("cast_truelight("@%Client@");",0.1);
 
 	return "returnFlag 1";

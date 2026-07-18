@@ -1381,7 +1381,7 @@ function Chocobo::Spawn(%Client, %Choco, %pos) {
 			GameBase::setPosition($ChocoboSpawn[%Client], %pos);
 			$isChocobo[$ChocoboSpawn[%Client]] = true;
 			$ChocoboSpawn[%Client].chocoOwner = %Client;  // only the owner may ride
-			Client::sendMessage(%Client, 0, "Your Chocobo scratches at the ground. Walk into it to ride! (vehicle-mode test)");
+			Client::sendMessage(%Client, 0, "Your Chocobo scratches at the ground. Walk into it to ride!");
 		}
 		else
 			echo("Error in Chocobo::Spawn (vehicle mode).");

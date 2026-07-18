@@ -32,8 +32,10 @@ function RPGmountItem(%player, %item, %slot) {
 
 	%Client = Player::getClient(%player);
 
-	%time =  getIntegerTime(true) >> 5;
-	if((%time - %Client.lastRPGMountTime) > 0.2)
+	//anti-spam: 1/32s units (getIntegerTime is already ms>>5). The old extra >>5
+	//made this whole seconds, turning the intended 0.2s cooldown into ~1s.
+	%time = getIntegerTime(true);
+	if((%time - %Client.lastRPGMountTime) > 6)	// ~0.2s
 		%Client.lastRPGMountTime = %time;
 	else
 		return;
@@ -81,8 +83,10 @@ function remoteChangeWeapon(%Client, %NextOrPrev) {
 	if(IsDead(%Client))
 		return;
 
-	%time =  getIntegerTime(true) >> 5;
-	if((%time - %Client.lastMountTime) > 1)
+	//anti-spam: 1/32s units (see RPGmountItem). Old extra >>5 made the intended
+	//~1s cycle cooldown behave as up to ~2s.
+	%time = getIntegerTime(true);
+	if((%time - %Client.lastMountTime) > 16)	// ~0.5s between cycle steps
 		%Client.lastMountTime = %time;
 	else
 		return;

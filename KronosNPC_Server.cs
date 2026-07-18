@@ -23,9 +23,15 @@
 // --- Handshake ------------------------------------------------------------
 // The client (config\Presto\KronosHUD.cs) announces itself with KHudOn. That
 // is the ONLY thing that flips hasKronosHUD true; it gates everything else.
-function remoteKHudOn(%clientId)
+function remoteKHudOn(%clientId, %ver)
 {
 	%clientId.hasKronosHUD = true;
+	// HUD protocol version. v2+ clients understand the "loot" overlay mode
+	// (Take / Take All buttons); pre-v2 repack clients send no arg (%ver
+	// arrives empty) and get the "shop"-dress fallback. Consumed by
+	// KronosShopRM_OpenLoot; cleared with the rest of the Kronos cluster in
+	// ClearVariables.
+	%clientId.khudVer = %ver;
 }
 
 // --- Open the window ------------------------------------------------------
@@ -52,6 +58,7 @@ function KronosNPC_OpenRM(%client, %botId, %display)
 	%client.knpcWinOpen = true;
 	%client.knpcBot = %botId;
 	%client.knpcTime = %now;
+	%client.knpcLastOpts = "1"; // assume options until a mirrored line says otherwise
 	// bump the close token so any close scheduled by a previous conversation's
 	// end (KronosNPC_RM_AfterChat) no-ops instead of shutting this new one.
 	%client.knpcCloseTok = %now;
@@ -108,10 +115,13 @@ function KronosNPC_RM_AfterChat(%Client, %closestId)
 		return;
 	if($state[%Client, %closestId] == "")
 		KronosNPC_EndRM(%Client);
-	else
-		// Conversation still waiting on input. If this turn offered no
-		// clickable options it's a FREE-TEXT turn (bank amount) - the client
-		// shows its in-window amount input (ignored when options are up).
+	else if(%Client.knpcLastOpts == "")
+		// Conversation still waiting on input AND the last mirrored line had no
+		// clickable options (tracked in AI::sayLater) - a genuine FREE-TEXT turn
+		// (bank amount): arm the client's in-window input. Turns WITH options
+		// must not get KNPCFree: the client's freeText latch made the amount box
+		// flicker on every option click and stick permanently when a gated reply
+		// produced no new line (solo-assassin "Nevermind").
 		remoteEval(%Client, "KNPCFree");
 }
 

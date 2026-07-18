@@ -1146,7 +1146,23 @@ function ClearVariables(%Client) {
 	%Client.possessId = "";
 	%Client.sleeping = "";
 	%Client.lastMountTime = "";
-	%clientId.replyTo = "";
+	%Client.replyTo = ""; //was %clientId.replyTo (wrong var name) - the clear never ran
+	%Client.currentLoot = "";
+	%Client.currentSmith = "";
+	//KronosHUD cluster: dot-fields persist across id recycling (that is why this
+	//list exists), and a stale hasKronosHUD makes the server treat the NEXT owner
+	//of this id as a HUD client - worst case SetupShop/SetupBank take the HUD
+	//branch and open NO GUI for a vanilla player (economy.cs:70/110).
+	%Client.hasKronosHUD = "";
+	%Client.khudVer = "";
+	%Client.knpcWinOpen = "";
+	%Client.knpcBot = "";
+	%Client.knpcTime = "";
+	%Client.knpcCloseTok = "";
+	%Client.knpcLastOpts = "";
+	%Client.kshopOpen = "";
+	%Client.khudLastHP = "";
+	%Client.khudLastMana = "";
 
 
 	deleteVariables("damagedBy"@%name@"*");

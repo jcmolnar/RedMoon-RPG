@@ -237,7 +237,11 @@ function BotChatStuff(%Client, %closestId, %message, %cropped, %initTalk) {
 						AI::sayLater(%Client, %closestId, "So you want to help me, eh?  Alright, I want you to kill <f1>"@FixM($bounty[%Client])@"<f0> for <f1>"@FixM(%reward)@"<f0> gil. Up for it? I also have something else you might want to buy.", %p1);
 						$state[%Client, %closestId] = 1;
 						$ClientData[%Client, BotId] = %closestId;
-						schedule("if($state["@%closestId@", "@%Client@"] == \"1\"){AI::sayLater("@%Client@", "@%closestId@", \"You don't want to answer?  Fine, I'll kill him myself.\", NULL);$bounty["@%Client@"] = \"\";$state["@%closestId@", "@%Client@"] = \"\";}", $AIwait[assassin]);
+						//FIXED 2026-07-17: both $state index pairs here were reversed ([%closestId,%Client]
+					//vs the canonical [%Client,%closestId] used everywhere else), so the guard read an
+					//always-empty slot and this bounty-offer timeout NEVER fired. Also close the
+					//KronosHUD dialogue window when the offer expires (EndRM self-guards for vanilla).
+					schedule("if($state["@%Client@", "@%closestId@"] == \"1\"){AI::sayLater("@%Client@", "@%closestId@", \"You don't want to answer?  Fine, I'll kill him myself.\", NULL);$bounty["@%Client@"] = \"\";$state["@%Client@", "@%closestId@"] = \"\";KronosNPC_EndRM("@%Client@");}", $AIwait[assassin]);
 					}
 				}
 			}

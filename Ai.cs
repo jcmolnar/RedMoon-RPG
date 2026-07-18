@@ -1070,8 +1070,19 @@ function AI::sayLater(%clientId, %id, %msg, %msg2)
 	// window parses the <f1>..<f0> markers in %msg2 for the CURRENT valid choices
 	// this turn. When the window is closed (or the client is vanilla) keep the
 	// stock RMShowBox popup so out-of-conversation bot lines still show.
-	if(%clientId.hasKronosHUD && %clientId.knpcWinOpen != "")
+	if(%clientId.hasKronosHUD && %clientId.knpcWinOpen != "") {
+		// Track whether THIS turn's line carried clickable options (same <f1>
+		// marker test the client's parseOpts uses). KronosNPC_RM_AfterChat
+		// consults this so KNPCFree (the free-text amount box) is only armed on
+		// genuinely option-less turns - it used to fire every turn, making the
+		// bank Amount box flicker on each click and stick permanently on the
+		// assassin's gated-reply dead end.
+		if(String::findSubStr(%msg2, "<f1>") != -1)
+			%clientId.knpcLastOpts = "1";
+		else
+			%clientId.knpcLastOpts = "";
 		remoteEval(%clientId, "KNPCLine", %msg, %msg2);
+	}
 	else
 		remoteEval(%clientId, "SetUpQuest", %msg, "", "", %msg2, $TownBot[%id, PIC]);
 

@@ -163,7 +163,16 @@ function KronosHUD_PushTarget(%shooterClient, %damagedClient, %damage)
 	if(%targetHpPct > 100)
 		%targetHpPct = 100;
 
-	remoteEval(%shooterClient, "KronosTarget", %targetName, %targetHpPct, %damage);
+	// RM 2026-07-18: the damage arg lights KronosHUD's target-plate -DMG/LCK
+	// slot - send it ONLY to shooters in nameplate mode (TAB menu "Set damage
+	// numbers"; $DmgStyle, SaveData slot 49). Floating-mode shooters get the
+	// number as an ATKText float (RM::sendATKText, playerdamage.cs), so
+	// passing %damage to them too showed the same hit TWICE. The name +
+	// live-HP plate push goes to everyone either way.
+	%plateDmg = "";
+	if($DmgStyle[%shooterClient] == "nameplate")
+		%plateDmg = %damage;
+	remoteEval(%shooterClient, "KronosTarget", %targetName, %targetHpPct, %plateDmg);
 }
 
 // ============================================

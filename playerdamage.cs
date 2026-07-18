@@ -1,4 +1,33 @@
 
+//------------------------------------------------------------------------------
+// Damage-number dispatch (TAB menu "Set damage numbers", $DmgStyle persisted in
+// SaveData slot 49). KronosHUD clients get the modern 4-arg ATKText
+// (text, style, viewType) so the Presto override renders their chosen style:
+//   ""/floating -> "redmoon" floats (Red Moon classic)
+//   "nameplate" -> plates; the ATTACKER's dealt-damage number arrives via the
+//                  KronosTarget plate push instead (KronosHUD_Server.cs), so
+//                  attacker-side non-MISS text is dropped here to avoid the
+//                  double display; defender text feeds the own-plate slot.
+// Vanilla clients keep the legacy 2-arg (text, isAttacker) DeusClient contract.
+function RM::sendATKText(%cl, %text, %isAttacker)
+{
+	if(%cl.hasKronosHUD)
+	{
+		%style = $DmgStyle[%cl];
+		if(%style == "")
+			%style = "redmoon";
+		if(%style == "nameplate" && %isAttacker && String::findSubStr(%text, "MISS") == -1)
+			return;
+		if(%isAttacker)
+			%vt = "attacker";
+		else
+			%vt = "defender";
+		remoteEval(%cl, "ATKText", %text, %style, %vt);
+	}
+	else
+		remoteEval(%cl, "ATKText", %text, %isAttacker);
+}
+
 function Client::onKilled(%Client, %killerId, %damageType, %legal) { //, %dmg) {
 
 	//This function is NOT an event, it must be MANUALLY CALLED!
@@ -297,8 +326,8 @@ function ForcedMiss(%sClient, %dClient) {
 	else
 		%hitby = Client::getName(%sClient);
 
-	remoteEval(%sClient,"ATKText", "<jc>MISS! (STA)", true);
-	remoteEval(%dClient,"ATKText", "<jc>"@%hitby@" MISSED! (STA)", false);
+	RM::sendATKText(%sClient, "<jc>MISS! (STA)", true);
+	RM::sendATKText(%dClient, "<jc>"@%hitby@" MISSED! (STA)", false);
 }
 
 
@@ -430,10 +459,10 @@ if($debug == true) echo("NEW VALUE: "@%value);
 					%dClient.lastMissMessage = %time;
 
 					if(!Player::isAiControlled(%dClient))
-						remoteEval(%dClient,"ATKText", "<jc>"@%hitby@" MISSED!", false);
+						RM::sendATKText(%dClient, "<jc>"@%hitby@" MISSED!", false);
 
 					if(!Player::isAiControlled(%sClient))
-						remoteEval(%sClient,"ATKText", "<jc>MISS!", true);
+						RM::sendATKText(%sClient, "<jc>MISS!", true);
 				}
 
 				//return;
@@ -737,10 +766,10 @@ if($debug == true) echo("%roll:"@%roll@" | New %value:"@%value);
 					%dClient.lastMissMessage = %time;
 
 					if(!Player::isAiControlled(%dClient))
-						remoteEval(%dClient,"ATKText", "<jc>"@%hitby@" MISSED!", false);
+						RM::sendATKText(%dClient, "<jc>"@%hitby@" MISSED!", false);
 
 					if(!Player::isAiControlled(%sClient))
-						remoteEval(%sClient,"ATKText", "<jc>MISS!", true);
+						RM::sendATKText(%sClient, "<jc>MISS!", true);
 				}
 				%value = 0;
 				return;
@@ -805,17 +834,17 @@ if($debug == true) echo("%roll:"@%roll@" | New %value:"@%value);
 				//display to involved
 				//--------------------
 				if(%sClient != %dClient)
-					remoteEval(%sClient,"ATKText", "<jc>"@%Val1, true);
-				remoteEval(%dClient,"ATKText", "<jc>"@%Val2, false);
+					RM::sendATKText(%sClient, "<jc>"@%Val1, true);
+				RM::sendATKText(%dClient, "<jc>"@%Val2, false);
 
 			}
 			else if(%convValue < 0) {
 				//this happens when there's a LCK consequence as miss
 				%hitby = Client::getName(%sClient);
 				if(!Player::isAiControlled(%sClient))
-					remoteEval(%sClient,"ATKText", "<jc>MISS! (LCK)", true);
+					RM::sendATKText(%sClient, "<jc>MISS! (LCK)", true);
 				if(!Player::isAiControlled(%dClient))
-					remoteEval(%dClient,"ATKText", "<jc>"@%hitby@" MISSED! (LCK)", false);
+					RM::sendATKText(%dClient, "<jc>"@%hitby@" MISSED! (LCK)", false);
 			}
 
 			//-------------------------------------------
@@ -838,8 +867,12 @@ if($debug == true) echo("%roll:"@%roll@" | New %value:"@%value);
 					}
 					// KronosHUD: live target-frame update for the attacker with
 					// the hit number (PushTarget self-gates on the handshake).
+					// 2026-07-18: %backupValue is ENGINE units at this point (the
+					// display number is rebuilt at the %convValue line above by
+					// MULTIPLYING back up) - passing it raw put "-1.82"-style
+					// numbers on the target plate. Convert exactly like %convValue.
 					if(%sClient != 0)
-						KronosHUD_PushTarget(%sClient, %dClient, %backupValue);
+						KronosHUD_PushTarget(%sClient, %dClient, round(%backupValue * $TribesDamageToNumericDamage));
 				}
 			}
 			if(!Player::isAiControlled(%dClient)) {

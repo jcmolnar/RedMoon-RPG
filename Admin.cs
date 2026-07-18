@@ -413,6 +413,17 @@ function Game::menuRequest(%Client) {
 			else if($defaultTalk[%Client] == "#group")
 				Client::addMenuItem(%Client, %curItem++@"Set default talk: #say" , "defsay");
 
+			// Damage-number display toggle (KronosHUD clients only - vanilla
+			// clients render the DeusClient text and have no style choice).
+			// Row shows what you'd switch TO, like the default-talk rows.
+			if(%Client.hasKronosHUD)
+			{
+				if($DmgStyle[%Client] == "nameplate")
+					Client::addMenuItem(%Client, %curItem++@"Set damage numbers: Floating" , "dmgfloat");
+				else
+					Client::addMenuItem(%Client, %curItem++@"Set damage numbers: Nameplate" , "dmgplate");
+			}
+
 		//	if(GetAccessoryList(%Client, 9, -1) != "") FIX!
 		//		Client::addMenuItem(%Client, %curItem++@"Ranged weapons..." , "rweapons");
 
@@ -516,6 +527,16 @@ function processMenuOptions(%Client, %option) {
 	else if(%opt == "defsay")
 	{
 		$defaultTalk[%Client] = "#say";
+	}
+	else if(%opt == "dmgfloat")
+	{
+		$DmgStyle[%Client] = "";
+		Client::sendMessage(%Client, $MsgBeige, "Damage numbers will float over the action (Red Moon style).");
+	}
+	else if(%opt == "dmgplate")
+	{
+		$DmgStyle[%Client] = "nameplate";
+		Client::sendMessage(%Client, $MsgBeige, "Damage numbers move to the nameplates: your hits show on the target plate, hits on you show above your vitals.");
 	}
 	else if(%opt == "addgroup")
 	{

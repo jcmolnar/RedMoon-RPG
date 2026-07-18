@@ -265,6 +265,7 @@ function SaveCharacter(%Client, %docamp, %force) {
 	$SaveData["[\""@%name@"\", 0, 8]"] = $grouplist[%name];
 	$SaveData["[\""@%name@"\", 0, 9]"] = $defaultTalk[%Client];
 	$SaveData["[\""@%name@"\", 0, 10]"] = $password[%Client];
+	$SaveData["[\""@%name@"\", 0, 49]"] = $DmgStyle[%Client]; // damage-number display ("" = floating/redmoon, "nameplate")
 
 	$SaveData["[\""@%name@"\", 0, 11]"] = $stealskill[%Client];
 	$SaveData["[\""@%name@"\", 0, 12]"] = $ClientData[%Client, Skill_BlackSmith]; //$inArena[%Client];
@@ -461,6 +462,7 @@ function LoadCharacter(%Client) {
 		$grouplist[%name] = $SaveData[%name, 0, 8];
 		$defaultTalk[%Client] = $SaveData[%name, 0, 9];
 		$password[%Client] = $SaveData[%name, 0, 10];
+		$DmgStyle[%Client] = $SaveData[%name, 0, 49]; // always assign - clears stale value from a reused client id
 
 		$stealskill[%Client] = $SaveData[%name, 0, 11];
 		$ClientData[%Client, Skill_BlackSmith] = $SaveData[%name, 0, 12];	//$inArena[%Client]
@@ -608,6 +610,7 @@ function LoadCharacter(%Client) {
 		$grouplist[%name] = "";
 		$spellList[%name] = "";
 		$defaultTalk[%Client] = "#say";
+		$DmgStyle[%Client] = ""; // floating (redmoon) default; also clears a reused client id
 		$password[%Client] = $Client::info[%Client, 5];
 		$stealskill[%Client] = $initstealskill;
 		$LCK[%Client] = $initLCK;

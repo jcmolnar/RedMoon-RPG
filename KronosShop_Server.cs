@@ -15,9 +15,13 @@
 // buy/sell the overlay repopulates instead of the stock GUI popping up.
 // Vanilla clients keep the stock GuiMode-4 screen exactly as before.
 //
+// Lootbag pickups (SetUpLootShop) ride the overlay too since 2026-07-17: the
+// bag is presented in "shop" dress (contents in the stock pane, remaining
+// count in the price column, Buy = free take via buyItem's loot branch) -
+// before this, HUD clients got the stock GuiMode-4 two-pane screen stacked
+// over the HUD (the "double inventory" look).
 // NOT covered (stays on the stock GUI even for HUD clients): the blacksmith
-// flow (SetupBlackSmith - its Sell-to-add-material staging is bespoke) and
-// lootbag shops (SetUpLootShop).
+// flow (SetupBlackSmith - its Sell-to-add-material staging is bespoke).
 //==============================================
 
 $KronosShopRM::MaxRows = 120;   // row cap per pane push
@@ -156,6 +160,40 @@ function KronosShopRM_OpenInv(%Client)
 	KronosShopRM_Cursor(%Client);
 }
 
+// Lootbag pane - wired from economy.cs SetUpLootShop for HUD clients, both on
+// pickup and on buyItem's post-take refresh (its currentLoot branch re-calls
+// SetUpLootShop after every take, so the pane repopulates as items leave the
+// bag). Rides the client's "shop" rendering - no client-side changes needed:
+// the Buy click sends the stock buyItem remote, which economy.cs routes
+// through its free-take loot branch (one unit per click, bulk-capped, exactly
+// like the stock GuiMode-4 screen this replaces). kshopOpen = "loot" keeps the
+// bank remotes' "bank" gates closed; Gate()'s isShoppingOn check covers the
+// walk-away distance via currentLoot, and remotePlayMode already clears both.
+function KronosShopRM_OpenLoot(%Client, %id)
+{
+	%Client.kshopOpen = "loot";
+	%Client.kshopShopIdx = "";
+
+	%who = $loottag[%id];
+	if(%who == "" || %who == "*" || %who == -1)
+		%who = "Backpack";
+	else
+		%who = %who @ "'s Backpack";
+
+	// v2+ HUD clients render the dedicated "loot" skin (Take / Take All
+	// buttons, count column). Pre-v2 repack clients don't know that mode -
+	// they'd draw a blank pane - so they keep the "shop" dress (Buy labels;
+	// cosmetic only, the take flow is identical).
+	%cliMode = "shop";
+	if(%Client.khudVer >= 2)
+		%cliMode = "loot";
+	remoteEval(%Client, "KShopOpen", %cliMode, %who);
+	KronosShopRM_PushStock(%Client);
+	KronosShopRM_PushInv(%Client);
+	remoteEval(%Client, "KBankCoins", $COINS[%Client], $BANK[%Client]);
+	KronosShopRM_Cursor(%Client);
+}
+
 // Mouse cursor for the overlay - the Kronos mechanism: open the score dialog
 // (its stock controls are binary-patched off-screen on HUD clients, so it's
 // invisible) purely to raise the engine GUI cursor. Scheduled a beat later,
@@ -191,6 +229,25 @@ function KronosShopRM_PushStock(%Client)
 	{
 		%list = $BankStorage[%Client];
 		for(%i = 0; (%item = GetWord(%list, %i)) != -1; %i += 2)
+		{
+			%cnt = floor(GetWord(%list, %i + 1));
+			if(%cnt <= 0)
+				continue;
+			if(%sent >= $KronosShopRM::MaxRows)
+				break;
+			remoteEval(%Client, "KShopStock", %sent, "d", KronosShopRM_SpacedRef(%item), %cnt, KronosShopRM_Heading(%item), KronosShopRM_Name(%item));
+			%sent++;
+		}
+	}
+	else if(%Client.kshopOpen == "loot")
+	{
+		// Loot mode: the bag's remaining contents. Word 0 of $loot[bag] is the
+		// owner tag ("*" public / a name) - skip it, "item count" pairs follow.
+		// The price column carries the remaining COUNT (display-only - the
+		// take click sends just the ref).
+		%bag = $ClientData[%Client, Looting];
+		%list = $loot[%bag];
+		for(%i = 1; (%item = GetWord(%list, %i)) != -1; %i += 2)
 		{
 			%cnt = floor(GetWord(%list, %i + 1));
 			if(%cnt <= 0)
@@ -247,6 +304,60 @@ function remoteKShopSync(%Client)
 	KronosShopRM_PushStock(%Client);
 	KronosShopRM_PushInv(%Client);
 	remoteEval(%Client, "KBankCoins", $COINS[%Client], $BANK[%Client]);
+}
+
+// Take All (loot overlay button, v2 clients). Same per-item rules as
+// buyItem's loot branch: cap to what the bag holds, cap to 99 carried, and
+// respect the distinct-item-type ceiling for types the player doesn't own
+// yet (mirrors buyItem's top check) - but applied in ONE pass with ONE
+// refresh at the end. The refresh (SetUpLootShop) repopulates the pane, or
+// deletes the emptied bag and drops back to play mode.
+function remoteKLootTakeAll(%Client)
+{
+	if(!KronosShopRM_Gate(%Client))
+		return;
+	if(%Client.kshopOpen != "loot")
+		return;
+
+	%bag = $ClientData[%Client, Looting];
+	if(%bag == "" || $loot[%bag] == "")
+		return;
+
+	%list = $loot[%bag];   // snapshot to iterate; word 0 is the owner tag
+	%blocked = 0;
+	for(%i = 1; (%item = GetWord(%list, %i)) != -1; %i += 2)
+	{
+		%cnt = floor(GetWord(%list, %i + 1));
+		if(%cnt <= 0)
+			continue;
+
+		if(!Client::HasItem(%Client, %item)
+				&& Client::getItemListCount(%Client, "ItemList") >= $Item::MaxItemListCount)
+		{
+			%blocked++;
+			continue;
+		}
+
+		%room = 99 - Client::getItemCount(%Client, %item);
+		if(%room < 0)
+			%room = 0;
+		%take = Cap(%cnt, 0, %room);
+		if(%take <= 0)
+		{
+			%blocked++;
+			continue;
+		}
+
+		Client::addItemCount(%Client, %item, %take);
+		$loot[%bag] = SetStuffString($loot[%bag], %item, -%take);
+		Client::sendMessage(%Client, 0, "You take "@%take@" "@$ItemData[%item, Name]@".");
+	}
+
+	if(%blocked > 0)
+		Client::sendMessage(%Client, $MsgWhite, "You couldn't carry everything - "@%blocked@" item type(s) left in the pack.");
+
+	SetUpLootShop(%Client, %Client.currentLoot, String::NEWgetSubStr($loot[%bag], String::len(GetWord($loot[%bag], 0))+1, 99999));
+	RefreshAll(%Client);
 }
 
 // Player closed the overlay (Esc / X) - mirror the native close (clears

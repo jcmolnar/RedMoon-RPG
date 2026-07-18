@@ -144,6 +144,29 @@ function SetUpLootShop(%Client, %id, %loot) { //LootShop
 	%Client.currentLoot = %id;
 	%Client.currentSmith = "";
 
+	// Bag emptied: delete it and drop back to play mode - for BOTH GUI
+	// flavors. (Moved above the data pushes 2026-07-17: they only fed a stock
+	// GUI that the remotePlayMode below was about to close anyway.)
+	if(getWord($loot[%id], 1) == -1) {
+		Item::playPickupSound(%id);
+		deleteObject(%id);
+		$loot[%id] = "";
+		$ClientData[$loottag[%id], OwnsLoot]--;
+		$loottag[%id] = "";
+
+		remotePlayMode(%Client);
+		return;
+	}
+
+	// KronosHUD clients: the Kronos overlay replaces the stock GuiMode-4 loot
+	// screen (which stacked over the HUD as a "double inventory"). This also
+	// catches buyItem's post-take refresh call, so the overlay repopulates
+	// instead of the stock GUI popping up. Vanilla falls through unchanged.
+	if(%Client.hasKronosHUD) {
+		KronosShopRM_OpenLoot(%Client, %id);
+		return;
+	}
+
 	%items = "";
 	%ii = 0;
 	for(%i = 0; (%item = GetWord(%loot, %i)) != -1; %i += 2) {
@@ -159,17 +182,6 @@ function SetUpLootShop(%Client, %id, %loot) { //LootShop
 	remoteEval(%Client, "GiveClientShoppingData", %items, true);
 
 //echo("LootShopItems:"@%items);
-	if(getWord($loot[%id], 1) == -1) {
-		Item::playPickupSound(%id);
-		deleteObject(%id);
-		$loot[%id] = "";
-		$ClientData[$loottag[%id], OwnsLoot]--;
-		$loottag[%id] = "";
-
-		remotePlayMode(%Client);
-		return;
-	}
-
 	Client::setGuiMode(%Client, 4);
 	%txt = "<f1>GIL: "@FixM($COINS[%Client]);
 	Client::setInventoryText(%Client, %txt);
@@ -438,6 +450,11 @@ function buyItem(%Client, %item, %bulk) {
 				if(%id != -1) {
 					Client::addItemCount(%Client, %item, %Client.bulk);
 					$loot[%this] = SetStuffString(%list, %item, -%Client.bulk);
+					//2026-07-17: the take path never echoed to chat - the stock
+					//two-pane GUI showed the item hop panes so nobody noticed;
+					//the KronosHUD overlay made the silence obvious. (Message
+					//must come before the %Client.bulk reset below.)
+					Client::sendMessage(%Client, 0, "You take "@%Client.bulk@" "@$ItemData[%item, Name]@".");
 				}
 			}
 
